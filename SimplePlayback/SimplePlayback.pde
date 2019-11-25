@@ -3,52 +3,74 @@
  * speed, amplitude and stereo panning.
  */
 
+import java.util.*;
 import processing.sound.*;
 
-SoundFile soundfile;
-String[] midi;
-float[] mf;
 int pos;
+Set<Integer> seenNotes = new HashSet<Integer>(); 
+SoundFile[] soundfiles = new SoundFile[16];
+float[] mf = new float[128];
+String[] midi;
+
+
+int root = 48;
+
+float getRate(float note) {
+  float rate = 1.0;
+  if (note < root) {
+    rate = 1 / (float)Math.pow(2, (root - note) / 12.0);
+  } else {
+    rate = (float)Math.pow(2, (note - root) / 12.0);
+  } 
+  return rate;
+}
+
 
 void setup() {
   size(640, 360);
   background(255);
 
-  mf = new float[128];
-  for (int x = 0; x < 127; ++x)
-  {
-     mf[x] = (float)(27.5 * Math.pow((float)(x - 21) / 12.0, 2.0));
+  for (int x = 0; x < 127; ++x) {
+     mf[x] = getRate(x);
   }
 
-  // Load a soundfile
-  soundfile = new SoundFile(this, "hit.aiff");
-
-  midi = loadStrings("musdat.txt");
+  for (int i = 0; i < 16; ++i) {
+    soundfiles[i] = new SoundFile(this, "bell-end.aiff");
+  }
+  
+  midi = loadStrings("once-in-royal.mid.txt");
   pos = 0;
-
-  // These methods return useful infos about the file
-  println("SFSampleRate= " + soundfile.sampleRate() + " Hz");
-  println("SFSamples= " + soundfile.frames() + " samples");
-  println("SFDuration= " + soundfile.duration() + " seconds");
 }      
 
 
+
+int startTime = 0;
+boolean done = false;
+
 void draw() {
-  if (pos < midi.length) {
+   if (startTime == 0) startTime = millis();
+ 
+  int ticks = millis() - startTime;
+
+  if (!done) {
     String[] parts = midi[pos].split(",", 6);
       int time = parseInt(parts[1].trim());
-      int note = parseInt(parts[4].trim());
       
-      float rate;
-      if (note < 69) {
-        rate = ((69 - note) / 12) * .5;
-      } else {
-        rate = 1 + ((note - 69) / 12) * 2;
-      }
-      if (millis() >= time) {
-        soundfile.play(rate, 1.0);
-        println(rate);
+      if (ticks >= time) {
+        int note = parseInt(parts[4].trim());
+
+        for(int i = 0; i < 16; ++i) {
+          if (!soundfiles[i].isPlaying()) {
+            soundfiles[i].play(mf[note], 1.0);
+            seenNotes.add(note);
+            break;
+          }
+        }
         ++pos;
+      }
+      done = pos == midi.length;
+      if (done) {
+        println("unique notes: " + str(seenNotes.size()));
       }
   }
 }
