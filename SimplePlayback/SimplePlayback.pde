@@ -12,7 +12,6 @@ class midinfo {
 }
 
 int pos;
-Set<Integer> seenNotes = new HashSet<Integer>(); 
 SoundFile[] soundfiles = new SoundFile[16];
 midinfo[] midinfos;
 float[] mf = new float[128];
@@ -42,8 +41,12 @@ void setup() {
     soundfiles[i] = new SoundFile(this, "bell-end.aiff");
   }
 
+  Set<Integer> seenNotes = new HashSet<Integer>(); 
+
   String[] midinames = new File("/Users/charlierobson/Documents/gh/ooh-what-a-carillon/SimplePlayback/data").list();  
+
   List<midinfo> midis = new ArrayList<midinfo>();
+
   for (String name : midinames) {
     if (name.endsWith(".mid.txt")) {
       midinfo info = new midinfo();
@@ -68,7 +71,7 @@ void setup() {
       midis.add(info);
     }
   }
-  midinfos = midis.;
+  midinfos = midis.toArray(new midinfo[midis.size()]);
 }
 
 
@@ -81,9 +84,10 @@ int chooseSong() {
   background(200);
   char letter = 'a';
   int x = 10, y = 30;
-  for (midinfo info : midis) {
-    text(letter + ": " + info.filename, x, y);
-    y += 25;
+  for (midinfo info : midinfos) {
+    text(letter + ": " + info.filename.substring(0, info.filename.indexOf('.')), x, y);
+    y += 20;
+    letter ++;
   }
   if (key >= 'a' && key < letter) {
     startTime = millis();
@@ -98,26 +102,28 @@ int chooseSong() {
 int playSong() {
   int ticks = millis() - startTime;
 
-  String[] parts = midi[pos].split(",", 6);
+  String[] parts = midinfos[tune].midi[pos].split(",", 6);
   int time = parseInt(parts[1].trim());
 
   if (ticks >= time) {
     int note = parseInt(parts[4].trim());
-
-    for (int i = 0; i < 16; ++i) {
-      if (!soundfiles[i].isPlaying()) {
-        soundfiles[i].play(mf[note], 1.0);
-        break;
+    //if (note > 55)
+    {
+      for (int i = 0; i < 16; ++i) {
+        if (!soundfiles[i].isPlaying()) {
+          soundfiles[i].play(mf[note], 1.0);
+          break;
+        }
       }
     }
     ++pos;
   }
 
   background(255);
-  text("title", 10, 20);
+  text(midinfos[tune].filename, 10, 20);
   text(str(ticks/1000), 10, 40);
-  
-  return pos == midi.length ? 0 : 1;
+
+  return pos == midinfos[tune].midi.length ? 0 : 1;
 }
 
 
