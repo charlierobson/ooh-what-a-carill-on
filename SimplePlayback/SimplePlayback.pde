@@ -88,6 +88,23 @@ int chooseSong() {
   return 0;
 }
 
+
+void requestNote(int note, int ticks) {
+  midiout.sendNoteOn(0, note, 64);
+  noteOffTimes[note] = ticks + 250;
+}
+
+String[] noteNames = {
+  "A","A#","B","C","C#","D","D#","E","F","F#","G","G#"
+};
+
+String noteToNote(int note) {
+  if (note < 21) return "X";
+  int nn = (note - 21) % 12;
+  int nm = note/12;
+  return noteNames[nn] + str(nm);
+}
+
 int[] noteOffTimes = new int[128];
 
 int playSong() {
@@ -96,11 +113,15 @@ int playSong() {
   String[] parts = midinfos[tune].midi[pos].split(",", 6);
   int time = parseInt(parts[1].trim());
 
-  if (ticks >= time) {
+  while (ticks >= time && pos < midinfos[tune].midi.length) {
     int note = parseInt(parts[4].trim());
-    midiout.sendNoteOn(0, note, 64);
-    noteOffTimes[note] = ticks + 250;
+    requestNote(note, ticks);
     ++pos;
+
+    if (pos < midinfos[tune].midi.length) {
+      parts = midinfos[tune].midi[pos].split(",", 6);
+      time = parseInt(parts[1].trim());
+    }
   }
 
   for (int i = 0; i < 127; ++i) {
@@ -109,7 +130,8 @@ int playSong() {
       noteOffTimes[i] = 0;
     }
   }
-  
+
+
   background(255);
   text(midinfos[tune].filename, 10, 20);
   text(str(ticks/1000), 10, 40);
