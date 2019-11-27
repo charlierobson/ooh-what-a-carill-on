@@ -1,87 +1,82 @@
 import java.util.*;
-import processing.sound.*;
 import themidibus.*;
 
-class midinfo {
+class MidiInfo {
   String filename;
   String[] midi;
+  SortedMap<Integer, Integer> noteCount;
+  int pos;
 }
-
-midinfo[] midinfos;
-
-AudioSample[] samples = new AudioSample[40];
-
-int pos;
 
 MidiBus midiout;
 
+// filenames of available midis
+String[] files;
+
+// info about selected/playing midi
+MidiInfo midinfo;
+
+
+
 void setup() {
-  size(640, 360);
+  size(640, 480);
   fill(0);
 
   midiout = new MidiBus(this, -1, 1);
   MidiBus.list();
 
-  SoundFile f = new SoundFile(this, "bell-jar.aiff");
-  int cliplen = f.frames() / 40;
-  for (int i = 0; i < 40; ++i) {
-    float[] data = new float[cliplen];
-    f.read(i * cliplen, data, 0, cliplen); 
-    samples[i] = new AudioSample(this, data);
-  }
+  // find midi files
+  ArrayList<String> mf = new ArrayList<String>();
 
-  Set<Integer> seenNotes = new HashSet<Integer>(); 
-
-  String[] midinames = new File("/Users/charlierobson/Documents/gh/ooh-what-a-carillon/SimplePlayback/data").list();  
-
-  List<midinfo> midis = new ArrayList<midinfo>();
-
-  for (String name : midinames) {
+  for (String name : new File(dataPath("")).list()) {
     if (name.endsWith(".mid.txt")) {
-      midinfo info = new midinfo();
-      info.filename = name;
-
-      info.midi = loadStrings(name);
-
-      seenNotes.clear();        
-      for (String s : info.midi) {
-        String[] parts = s.split(",", 6);
-        seenNotes.add(parseInt(parts[4].trim()));
-      }
-
-      println("\nmidi: " + name);
-      List<Integer> toSort = new ArrayList<Integer>(seenNotes);
-      Collections.sort(toSort);
-      for (Integer i : toSort) {
-        print(" " + str(i));
-      }
-      println("\nunique notes: " + str(seenNotes.size()));
-
-      midis.add(info);
+      mf.add(name.substring(0, name.indexOf('.')));
     }
   }
-  midinfos = midis.toArray(new midinfo[midis.size()]);
+
+  files = mf.toArray(new String[mf.size()]);
+}
+
+
+void processTune(int id) {
+  midinfo = new MidiInfo();
+  
+  midinfo.pos = 0;
+  midinfo.filename = files[id];
+  midinfo.midi = loadStrings(midinfo.filename+".mid.txt");
+
+  // count the instances of each note in the song
+  midinfo.noteCount = new TreeMap<Integer, Integer>();
+
+  for (String s : midinfo.midi) {
+    String[] parts = s.split(",", 6);
+    int note = parseInt(parts[4].trim());
+    int n = midinfo.noteCount.getOrDefault(note, 0) + 1;
+    midinfo.noteCount.put(note, n);
+  }
 }
 
 
 int state = 0;
 int startTime = 0;
+
 int tune;
 boolean done = false;
 
 int chooseSong() {
   background(200);
+
   char letter = 'a';
   int x = 10, y = 30;
-  for (midinfo info : midinfos) {
-    text(letter + ": " + info.filename.substring(0, info.filename.indexOf('.')), x, y);
+  for (String name : files) {
+    text(letter + ": " + name, x, y);
     y += 20;
     letter ++;
   }
+
   if (key >= 'a' && key < letter) {
     startTime = millis();
-    tune = key - 'a';
-    pos = 0;
+    processTune(key - 'a');
     return 1;
   }
 
@@ -95,11 +90,11 @@ void requestNote(int note, int ticks) {
 }
 
 String[] noteNames = {
-  "A","A#","B","C","C#","D","D#","E","F","F#","G","G#"
+  "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
 };
 
-String noteToNote(int note) {
-  if (note < 21) return "X";
+String noteToNoteName(int note) {
+  if (note < 21) return "-X-";
   int nn = (note - 21) % 12;
   int nm = note/12;
   return noteNames[nn] + str(nm);
@@ -110,16 +105,16 @@ int[] noteOffTimes = new int[128];
 int playSong() {
   int ticks = millis() - startTime;
 
-  String[] parts = midinfos[tune].midi[pos].split(",", 6);
+  String[] parts = midinfo.midi[midinfo.pos].split(",", 6);
   int time = parseInt(parts[1].trim());
 
-  while (ticks >= time && pos < midinfos[tune].midi.length) {
+  while (ticks >= time && midinfo.pos < midinfo.midi.length) {
     int note = parseInt(parts[4].trim());
     requestNote(note, ticks);
-    ++pos;
+    ++midinfo.pos;
 
-    if (pos < midinfos[tune].midi.length) {
-      parts = midinfos[tune].midi[pos].split(",", 6);
+    if (midinfo.pos < midinfo.midi.length) {
+      parts = midinfo.midi[midinfo.pos].split(",", 6);
       time = parseInt(parts[1].trim());
     }
   }
@@ -131,12 +126,19 @@ int playSong() {
     }
   }
 
-
   background(255);
-  text(midinfos[tune].filename, 10, 20);
+  text(midinfo.filename, 10, 20);
   text(str(ticks/1000), 10, 40);
+  int x = 10;
+  for (int note : midinfo.noteCount.keySet()) {
+    String noteName = noteToNoteName(note);
+    int noteCount = midinfo.noteCount.get(note);
+    text(noteName, x, 60);
+    text(str(noteCount), x, 75);
+    x += 35;
+  }
 
-  return pos == midinfos[tune].midi.length ? 2 : 1;
+  return midinfo.pos == midinfo.midi.length ? 2 : 1;
 }
 
 
