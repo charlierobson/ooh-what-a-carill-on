@@ -11,34 +11,23 @@ class midinfo {
   String[] midi;
 }
 
-int pos;
-SoundFile[] soundfiles = new SoundFile[16];
 midinfo[] midinfos;
-float[] mf = new float[128];
 
 int root = 48;
+AudioSample[] samples = new AudioSample[36];
 
-float getRate(float note) {
-  float rate = 1.0;
-  if (note < root) {
-    rate = 1 / (float)Math.pow(2, (root - note) / 12.0);
-  } else {
-    rate = (float)Math.pow(2, (note - root) / 12.0);
-  } 
-  return rate;
-}
-
+int pos;
 
 void setup() {
   size(640, 360);
   fill(0);
 
-  for (int x = 0; x < 127; ++x) {
-    mf[x] = getRate(x);
-  }
-
-  for (int i = 0; i < 16; ++i) {
-    soundfiles[i] = new SoundFile(this, "bell-end.aiff");
+  SoundFile f = new SoundFile(this, "bell-jar.aiff");
+  int cliplen = f.frames() / 40;
+  for (int i = 0; i < 36; ++i) {
+    float[] data = new float[cliplen];
+    f.read(i * cliplen, data, 0, cliplen); 
+    samples[i] = new AudioSample(this, data);
   }
 
   Set<Integer> seenNotes = new HashSet<Integer>(); 
@@ -107,15 +96,7 @@ int playSong() {
 
   if (ticks >= time) {
     int note = parseInt(parts[4].trim());
-    //if (note > 55)
-    {
-      for (int i = 0; i < 16; ++i) {
-        if (!soundfiles[i].isPlaying()) {
-          soundfiles[i].play(mf[note], 1.0);
-          break;
-        }
-      }
-    }
+    samples[note - 36].play(1.0);
     ++pos;
   }
 
