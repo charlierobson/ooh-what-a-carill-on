@@ -1,10 +1,6 @@
-/**
- * This is a simple sound file player. Use the mouse position to control playback
- * speed, amplitude and stereo panning.
- */
-
 import java.util.*;
 import processing.sound.*;
+import themidibus.*;
 
 class midinfo {
   String filename;
@@ -13,18 +9,22 @@ class midinfo {
 
 midinfo[] midinfos;
 
-int root = 48;
-AudioSample[] samples = new AudioSample[36];
+AudioSample[] samples = new AudioSample[40];
 
 int pos;
+
+MidiBus midiout;
 
 void setup() {
   size(640, 360);
   fill(0);
 
+  midiout = new MidiBus(this, -1, 1);
+  MidiBus.list();
+
   SoundFile f = new SoundFile(this, "bell-jar.aiff");
   int cliplen = f.frames() / 40;
-  for (int i = 0; i < 36; ++i) {
+  for (int i = 0; i < 40; ++i) {
     float[] data = new float[cliplen];
     f.read(i * cliplen, data, 0, cliplen); 
     samples[i] = new AudioSample(this, data);
@@ -88,6 +88,8 @@ int chooseSong() {
   return 0;
 }
 
+int[] noteOffTimes = new int[128];
+
 int playSong() {
   int ticks = millis() - startTime;
 
@@ -96,15 +98,30 @@ int playSong() {
 
   if (ticks >= time) {
     int note = parseInt(parts[4].trim());
-    samples[note - 36].play(1.0);
+    midiout.sendNoteOn(0, note, 64);
+    noteOffTimes[note] = ticks + 250;
     ++pos;
   }
 
+  for (int i = 0; i < 127; ++i) {
+    if (ticks > noteOffTimes[i]) {
+      midiout.sendNoteOff(0, i, 0);
+      noteOffTimes[i] = 0;
+    }
+  }
+  
   background(255);
   text(midinfos[tune].filename, 10, 20);
   text(str(ticks/1000), 10, 40);
 
-  return pos == midinfos[tune].midi.length ? 0 : 1;
+  return pos == midinfos[tune].midi.length ? 2 : 1;
+}
+
+
+int songComplete() {
+  background(255);
+  text("Press space", 10, 20);
+  return key == ' ' ? 0 : 2;
 }
 
 
@@ -115,6 +132,9 @@ void draw() {
     break;
   case 1:
     state = playSong();
+    break;
+  case 2:
+    state = songComplete();
     break;
   }
 }
