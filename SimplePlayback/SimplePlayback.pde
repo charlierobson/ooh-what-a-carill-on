@@ -12,6 +12,7 @@ class MidiInfo {
 // responsible for reading input and feedback and output 
 class Controller {
   int assignedNote;
+  int requestEndTime;
 }
 
 MidiBus midiout;
@@ -32,6 +33,10 @@ void setup() {
   midiout = new MidiBus(this, -1, 1);
   MidiBus.list();
 
+  for (int i = 0; i < 10; ++i) {
+    controllers[i] = new Controller();
+  }
+
   // find midi files
   ArrayList<String> mf = new ArrayList<String>();
 
@@ -47,7 +52,7 @@ void setup() {
 
 void processTune(int id) {
   midinfo = new MidiInfo();
-  
+
   midinfo.pos = 0;
   midinfo.filename = files[id];
   midinfo.midi = loadStrings(midinfo.filename+".mid.txt");
@@ -62,22 +67,24 @@ void processTune(int id) {
     midinfo.noteCount.put(note, n);
   }
 
+  // write raw mapping
   String s = midinfo.noteCount.toString();
   s = s.substring(1, s.length() - 1);
   String[] mapping = s.split(", ");
-  saveStrings(midinfo.filename + ".map.txt", mapping);
+  saveStrings(dataPath(midinfo.filename + ".map.txt"), mapping);
 
-  //// map notes to controllers
-  //int n = 0;
 
-  //Collection c = midinfo.noteCount.keySet();
-  //Iterator itr = c.iterator();
+  // map notes to controllers using cooked map
+  int n = 0;
 
-  //String[] mapping = loadStrings(midinfo.filename+".map");
-  //for (Controller controller : controllers) {
-  //  controller.assignedNote = parseInt(mapping[n].trim());
-  //  ++n;
-  //}
+  mapping = loadStrings(midinfo.filename+".map");
+  if (mapping != null && mapping.length != 0) {
+    for (Controller controller : controllers) {
+      String[] m = mapping[n].split("=");
+      controller.assignedNote = parseInt(m[0]);
+      ++n;
+    }
+  }
 }
 
 
@@ -89,6 +96,7 @@ boolean done = false;
 
 int chooseSong() {
   background(200);
+  fill(0);
 
   char letter = 'a';
   int x = 10, y = 30;
@@ -109,9 +117,15 @@ int chooseSong() {
 
 
 void requestNote(int note, int ticks) {
-  midiout.sendNoteOn(0, note, 64);
-  noteOffTimes[note] = ticks + 250;
+  for (Controller c : controllers) {
+    if (c.assignedNote == note) {
+      //midiout.sendNoteOn(0, note, 64);
+      //noteOffTimes[note] = ticks + 250;
+      c.requestEndTime = ticks + 250;
+    }
+  }
 }
+
 
 String[] noteNames = {
   "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
@@ -151,14 +165,21 @@ int playSong() {
   }
 
   background(255);
+  fill(0);
   text(midinfo.filename, 10, 20);
   text(str(ticks/1000), 10, 40);
-  int x = 10;
-  for (int note : midinfo.noteCount.keySet()) {
-    String noteName = noteToNoteName(note);
-    int noteCount = midinfo.noteCount.get(note);
+
+  int x = 15;
+  for (Controller controller : controllers) {
+    if (ticks > controller.requestEndTime) {
+        controller.requestEndTime = 0;
+    }
+
+    String noteName = noteToNoteName(controller.assignedNote);
+    fill(0);
     text(noteName, x, 60);
-    text(str(noteCount), x, 75);
+    fill(controller.requestEndTime > ticks ? color(255, 0, 0) : color(128, 0, 0));
+    ellipse(x+5, 75, 10, 10);
     x += 35;
   }
 
@@ -168,6 +189,8 @@ int playSong() {
 
 int songComplete() {
   background(255);
+  fill(0);
+
   text("Press space", 10, 20);
   return key == ' ' ? 0 : 2;
 }
