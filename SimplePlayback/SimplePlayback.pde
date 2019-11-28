@@ -1,11 +1,17 @@
 import java.util.*;
 import themidibus.*;
 
+// responsible for collating data related to playback of tune
 class MidiInfo {
   String filename;
   String[] midi;
   SortedMap<Integer, Integer> noteCount;
   int pos;
+}
+
+// responsible for reading input and feedback and output 
+class Controller {
+  int assignedNote;
 }
 
 MidiBus midiout;
@@ -16,6 +22,7 @@ String[] files;
 // info about selected/playing midi
 MidiInfo midinfo;
 
+Controller[] controllers = new Controller[10];
 
 
 void setup() {
@@ -54,6 +61,23 @@ void processTune(int id) {
     int n = midinfo.noteCount.getOrDefault(note, 0) + 1;
     midinfo.noteCount.put(note, n);
   }
+
+  String s = midinfo.noteCount.toString();
+  s = s.substring(1, s.length() - 1);
+  String[] mapping = s.split(", ");
+  saveStrings(midinfo.filename + ".map.txt", mapping);
+
+  //// map notes to controllers
+  //int n = 0;
+
+  //Collection c = midinfo.noteCount.keySet();
+  //Iterator itr = c.iterator();
+
+  //String[] mapping = loadStrings(midinfo.filename+".map");
+  //for (Controller controller : controllers) {
+  //  controller.assignedNote = parseInt(mapping[n].trim());
+  //  ++n;
+  //}
 }
 
 
