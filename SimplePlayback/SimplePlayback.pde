@@ -16,6 +16,7 @@ class Controller {
 }
 
 MidiBus midiout;
+MidiBus midilights;
 
 // filenames of available midis
 String[] files;
@@ -31,6 +32,7 @@ void setup() {
   fill(0);
 
   midiout = new MidiBus(this, -1, 1);
+  midiout = new MidiBus(this, -1, 2);
   MidiBus.list();
 
   for (int i = 0; i < 10; ++i) {
