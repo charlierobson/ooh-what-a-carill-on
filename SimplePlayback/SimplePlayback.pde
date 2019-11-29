@@ -49,6 +49,8 @@ void setup() {
   }
 
   files = mf.toArray(new String[mf.size()]);
+
+  for (int i = 0; i < files.length; ++i) processTune(i);
 }
 
 
@@ -73,8 +75,11 @@ void processTune(int id) {
   String s = midinfo.noteCount.toString();
   s = s.substring(1, s.length() - 1);
   String[] mapping = s.split(", ");
-  saveStrings(dataPath(midinfo.filename + ".map.txt"), mapping);
 
+  ArrayList<String> s2 = new ArrayList<String>();
+  s2.add(midinfo.filename);
+  for (String ss : mapping) s2.add(ss);
+  saveStrings(dataPath(midinfo.filename + ".map.txt"), s2.toArray(new String[s2.size()]));
 
   // map notes to controllers using cooked map
   int n = 0;
