@@ -1,6 +1,17 @@
 import java.util.*;
 import themidibus.*;
 
+
+interface state
+{
+  abstract String update();
+  abstract void draw();
+};
+
+PImage _bg;
+
+
+
 // responsible for collating data related to playback of tune
 class MidiInfo {
   String filename;
@@ -26,13 +37,18 @@ MidiInfo midinfo;
 
 Controller[] controllers = new Controller[10];
 
+state currentState;
 
 void setup() {
-  size(640, 480);
+  size(1400, 900);
   fill(0);
+  
+  _bg = loadImage("title.png");
+
+  currentState = new title();
 
   midiout = new MidiBus(this, -1, 1);
-  midiout = new MidiBus(this, -1, 2);
+//  midiout = new MidiBus(this, -1, 2);
   MidiBus.list();
 
   for (int i = 0; i < 10; ++i) {
@@ -204,7 +220,9 @@ int songComplete() {
 
 
 void draw() {
-  switch (state) {
+  currentState.draw();
+  
+/*  switch (state) {
   case 0:
     state = chooseSong();
     break;
@@ -214,5 +232,5 @@ void draw() {
   case 2:
     state = songComplete();
     break;
-  }
+  }*/
 }
