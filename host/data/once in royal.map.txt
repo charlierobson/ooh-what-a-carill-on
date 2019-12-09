@@ -1,4 +1,4 @@
-once-in-royal
+once in royal
 47=6
 48=10
 50=18

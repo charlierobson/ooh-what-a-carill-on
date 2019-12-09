@@ -1,4 +1,4 @@
-oh-little-town-of-bethlehem
+oh little town of bethlehem
 36=6
 38=8
 40=6

@@ -1,4 +1,4 @@
-while-shepherds-watched
+while shepherds watched
 45=2
 46=4
 48=12
