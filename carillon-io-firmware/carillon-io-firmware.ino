@@ -8,7 +8,6 @@ void buttonLight(int num, int state) {
 
 void setup() {
   Serial.begin(115200);
-  delay(200);
 
   // put your setup code here, to run once:
   for (int i = 0; i < 10; ++i)
@@ -28,13 +27,21 @@ void setup() {
   }
 }
 
+byte debounce[10];
 
 void loop() {
 
+  // bb collects a 1 bit for every button which is deemed to be held after debouncing
   int bb = 0;
-  for(int i = 20; i < 2; --i) {
-      bb |= digitalRead(i);
-      bb <<= 1;
+
+  // loop from 0..9, but check pins in order 20..2
+  for(int i = 0; i < 10; ++i) {
+    // button is debounced when all the input collected over the last 8 cycles was 1
+    debounce[i] <<= 1;
+    debounce[i] |= digitalRead(20 - (i*2)) == LOW ? 1 : 0;
+
+    bb <<= 1;
+    bb |= debounce[i] == 0xff ? 1 : 0;
   }
 
   if (Serial.available() > 0) {

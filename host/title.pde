@@ -2,6 +2,7 @@ class Title implements StateHandler
 {
   void begin()
   {
+    textFont(titleFontBig);
   }
 
   String update()
@@ -21,7 +22,6 @@ class Title implements StateHandler
     image(titleImage, 0, 0);
     char letter = 'a';
     int x = 900, y = 100;
-    textFont(titleFont);
     for (String name : midiProcessor._files) {
       fill(0);
       text(letter + ": " + name, x+5, y+5);

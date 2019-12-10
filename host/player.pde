@@ -12,6 +12,7 @@ public class Player implements StateHandler
     _startTime = millis();
     int index = midiProcessor._songNum;
     _midiInfo = midiProcessor._midiInfos[index];
+    textFont(titleFontSmall);
   }
 
   String update()
@@ -32,12 +33,26 @@ public class Player implements StateHandler
       }
     }
 
-    for (int i = 0; i < 127; ++i) {
-      if (_ticks > noteOffTimes[i]) {
-        midiout.sendNoteOff(0, i, 0);
-        noteOffTimes[i] = 0;
+    serial.write('r');
+    while (serial.available() < 2) { 
+      delay(1);
+    }
+    int low = serial.read();
+    int hi = serial.read();
+    int buttonBits = 256 * hi + low;       
+    println(low, hi);
+
+    int lightsup = 0;
+    for (Controller controller : _midiInfo.controllers) {
+      boolean active = controller.update(_ticks, buttonBits);
+      if (active) {
+        lightsup |= controller.lightMask;
       }
     }
+
+    serial.write('w');
+    serial.write((byte)(lightsup & 0xff));
+    serial.write((byte)(lightsup >> 8));
 
     return _pos == _midiInfo.midi.length ? "Title" : null;
   }
@@ -46,31 +61,23 @@ public class Player implements StateHandler
   {
     background(255);
     fill(0);
-    text(_midiInfo.filename, 10, 20);
-    text(str(_ticks/1000), 10, 40);
+    text(_midiInfo.filename, 20, 50);
+    text(str(_ticks/1000), 20, 100);
 
-    int x = 15;
+    int x = 50;
     for (Controller controller : _midiInfo.controllers) {
-      if (_ticks > controller.requestEndTime) {
-        controller.requestEndTime = 0;
-      }
-
       String noteName = noteToNoteName(controller.assignedNote);
       fill(0);
-      text(noteName, x, 60);
+      text(noteName, x, 150);
       fill(controller.requestEndTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
-      ellipse(x+5, 75, 10, 10);
-      x += 35;
+      ellipse(x+5, 200, 30, 30);
+      x += 50;
     }
   }
 
   private void requestNote(int note, int ticks) {
     for (Controller c : _midiInfo.controllers) {
-      if (c.assignedNote == note) {
-        midiout.sendNoteOn(0, note, 64);
-        noteOffTimes[note] = ticks + 250;
-        c.requestEndTime = ticks + 250;
-      }
+      c.trigger(ticks, note);
     }
   }
 
@@ -84,6 +91,4 @@ public class Player implements StateHandler
     int nm = note/12;
     return noteNames[nn] + str(nm);
   }
-
-  int[] noteOffTimes = new int[128];
 }
