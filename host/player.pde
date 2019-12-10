@@ -39,7 +39,7 @@ public class Player implements StateHandler
       }
     }
 
-    return null; //midinfo.pos == midinfo.midi.length ? 2 : 1;
+    return _pos == _midiInfo.midi.length ? "Title" : null;
   }
 
   void draw()
@@ -50,7 +50,7 @@ public class Player implements StateHandler
     text(str(_ticks/1000), 10, 40);
 
     int x = 15;
-    for (Controller controller : controllers) {
+    for (Controller controller : _midiInfo.controllers) {
       if (_ticks > controller.requestEndTime) {
         controller.requestEndTime = 0;
       }
@@ -65,10 +65,10 @@ public class Player implements StateHandler
   }
 
   private void requestNote(int note, int ticks) {
-    for (Controller c : controllers) {
+    for (Controller c : _midiInfo.controllers) {
       if (c.assignedNote == note) {
-        //midiout.sendNoteOn(0, note, 64);
-        //noteOffTimes[note] = ticks + 250;
+        midiout.sendNoteOn(0, note, 64);
+        noteOffTimes[note] = ticks + 250;
         c.requestEndTime = ticks + 250;
       }
     }
@@ -86,12 +86,4 @@ public class Player implements StateHandler
   }
 
   int[] noteOffTimes = new int[128];
-
-  int songComplete() {
-    background(255);
-    fill(0);
-
-    text("Press space", 10, 20);
-    return key == ' ' ? 0 : 2;
-  }
 }

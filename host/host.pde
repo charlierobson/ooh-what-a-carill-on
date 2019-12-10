@@ -15,6 +15,7 @@ HashMap<String,StateHandler> states;
 
 // responsible for collating data related to playback of tune
 class MidiInfo {
+  Controller[] controllers;
   String filename;
   String[] midi;
   SortedMap<Integer, Integer> noteCount;
@@ -27,8 +28,6 @@ class Controller {
 }
 
 MidiBus midiout;
-
-Controller[] controllers = new Controller[10];
 
 MidiProcessor midiProcessor;
  
@@ -43,10 +42,6 @@ void setup() {
 
   midiout = new MidiBus(this, -1, 1);
   MidiBus.list();
-
-  for (int i = 0; i < 10; ++i) {
-    controllers[i] = new Controller();
-  }
 
   midiProcessor = new MidiProcessor();  
   midiProcessor.findAndProcessFiles();

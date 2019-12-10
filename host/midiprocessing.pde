@@ -55,10 +55,15 @@ class MidiProcessor
 
     // map notes to controllers using cooked map
     int n = 0;
+    midinfo.controllers = new Controller[10];
+    for (int i = 0; i < 10; ++i) {
+      midinfo.controllers[i] = new Controller();
+    }
+
 
     mapping = loadStrings(midinfo.filename+".map");
     if (mapping != null && mapping.length != 0) {
-      for (Controller controller : controllers) {
+      for (Controller controller : midinfo.controllers) {
         String[] m = mapping[n].split("=");
         controller.assignedNote = parseInt(m[0]);
         ++n;
