@@ -1,8 +1,19 @@
+import processing.serial.*;
 import java.util.*;
 import themidibus.*;
 
 PFont titleFont;
 PImage titleImage;
+Serial serial;
+
+int keycode;
+boolean keyget = false;
+
+void keyPressed() {
+  keycode = key;
+  keyget = true;
+}
+
 
 interface StateHandler
 {
@@ -34,8 +45,11 @@ MidiProcessor midiProcessor;
 StateHandler currentState;
 
 void setup() {
-  size(1440, 900);
+//  size(1440, 900);
 //  fullScreen();
+  size(640,480);
+
+  serial = new Serial(this, Serial.list()[3], 115200); 
 
   titleImage = loadImage("title.png");
   titleFont = createFont("Baskerville-Italic", 50);
@@ -47,10 +61,11 @@ void setup() {
   midiProcessor.findAndProcessFiles();
 
   states = new HashMap<String, StateHandler>();
+  states.put("Test", new Test());
   states.put("Title", new Title());
   states.put("Player", new Player());
 
-  currentState = states.get("Title");
+  currentState = states.get("Test");
 }
 
 

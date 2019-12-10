@@ -11,12 +11,11 @@ void setup() {
   delay(200);
 
   // put your setup code here, to run once:
-  for(int i = 0; i < 10; ++i)
+  for (int i = 0; i < 10; ++i)
   {
     pinMode(lightToPin(i), OUTPUT);
     digitalWrite(lightToPin(i), LOW);
-    Serial.println(lightToPin(i)-1, DEC);
-    pinMode(lightToPin(i)-1, INPUT_PULLUP);
+    pinMode(lightToPin(i) - 1, INPUT_PULLUP);
   }
 
   for (int i = 0; i < 10; ++i) {
@@ -29,23 +28,29 @@ void setup() {
   }
 }
 
+int buttonbits;
+byte buttbits[] = { 0,0 };
+
 void loop() {
-  if (Serial.available()) {
-    int cmd = Serial.read();
-    if (cmd == 42) {
+  if (Serial.available() > 0) {
+    byte cmd = Serial.read();
+    if (cmd == 'w') {
       // receive lights from server
-      int hi = Serial.read();
+      while (Serial.available() < 2) {
+        delay(1);
+      }
       int low = Serial.read();
+      int hi = Serial.read();
       int wordup = 256 * hi + low;
-      for(int i = 0; i < 10; ++i) {
+      for (int i = 0; i < 10; ++i) {
         buttonLight(i, (wordup & 1) == 1);
         wordup >>= 1;
       }
     }
-    else if (cmd == 0x42) {
-      // send button states to server
-      Serial.write(0xaa);
-      Serial.write(0x55);
+    else if (cmd == 'r') {
+      ++buttbits[0];
+      Serial.write(buttbits[0]);
+      Serial.write(buttbits[1]);
     }
   }
 }
