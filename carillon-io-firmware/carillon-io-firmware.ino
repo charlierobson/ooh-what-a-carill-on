@@ -28,10 +28,15 @@ void setup() {
   }
 }
 
-int buttonbits;
-byte buttbits[] = { 0,0 };
 
 void loop() {
+
+  int bb = 0;
+  for(int i = 20; i < 2; --i) {
+      bb |= digitalRead(i);
+      bb <<= 1;
+  }
+
   if (Serial.available() > 0) {
     byte cmd = Serial.read();
     if (cmd == 'w') {
@@ -48,9 +53,8 @@ void loop() {
       }
     }
     else if (cmd == 'r') {
-      ++buttbits[0];
-      Serial.write(buttbits[0]);
-      Serial.write(buttbits[1]);
+      Serial.write((byte)(bb & 255));
+      Serial.write((byte)(bb >> 8));
     }
   }
 }

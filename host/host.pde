@@ -45,9 +45,9 @@ MidiProcessor midiProcessor;
 StateHandler currentState;
 
 void setup() {
-//  size(1440, 900);
+  size(1440, 900);
 //  fullScreen();
-  size(640,480);
+//  size(640,480);
 
   serial = new Serial(this, Serial.list()[3], 115200); 
 
@@ -65,7 +65,7 @@ void setup() {
   states.put("Title", new Title());
   states.put("Player", new Player());
 
-  currentState = states.get("Test");
+  currentState = states.get("Title");
 }
 
 
