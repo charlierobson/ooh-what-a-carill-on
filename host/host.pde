@@ -51,29 +51,29 @@ class Controller {
   boolean lastTriggerState;
 
   void trigger(int ticks, int note) {
-    if (note == assignedNote) {
-      requestEndTime = ticks + 250;
+    if (note == _assignedNote) {
+      _requestEndTime = ticks + 500;
     }
   }
 
   boolean update(int ticks, int buttonMask) {
-    if (ticks > requestEndTime) {
-      requestEndTime = 0;
+    if (ticks > _requestEndTime) {
+      _requestEndTime = 0;
     }
 
     boolean triggered = (buttonMask & lightMask) != 0;
     if (triggered && !lastTriggerState) {
-      noteOffTime = ticks + 250;
-      midiout.sendNoteOn(0, assignedNote, 127);
+      noteOffTime = ticks + 500;
+      midiout.sendNoteOn(0, _assignedNote, 127);
     }
     lastTriggerState = triggered;
 
     if (noteOffTime != 0 && ticks > noteOffTime) {
-      midiout.sendNoteOff(0, assignedNote, 0);
+      midiout.sendNoteOff(0, _assignedNote, 0);
       noteOffTime = 0;
     }
 
-    return requestEndTime != 0;
+    return _requestEndTime != 0;
   }
 }
 
@@ -88,6 +88,7 @@ void setup() {
   //  fullScreen();
   //  size(640,480);
 
+  printArray(serial.list());
   serial = new Serial(this, Serial.list()[3], 115200); 
 
   titleImage = loadImage("title.png");
@@ -114,7 +115,6 @@ void setup() {
 void draw() {
   String newState = currentState.update();
   if (newState != null) {
-    println(newState);
     if (states.containsKey(newState)) {
       currentState = states.get(newState);
       currentState.begin();

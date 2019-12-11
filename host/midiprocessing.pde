@@ -54,7 +54,8 @@ class MidiProcessor
 
     if (tempo == -1) return null;
 
-    println(ppqn, tempo);
+    println("PPQN: " + str(ppqn));
+    println("TEMPO: " + str(tempo));
 
     MidiInfo midinfo = new MidiInfo();
     midinfo.filename = filename.substring(0, filename.indexOf('.'));
