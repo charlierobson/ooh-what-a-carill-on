@@ -24,18 +24,27 @@ interface StateHandler
 
 HashMap<String,StateHandler> states;
 
+class NoteInfo {
+  int _tick, _note;
+  NoteInfo(int tick, int note) {
+    _tick = tick;
+    _note = note;
+  }
+}
+
 // responsible for collating data related to playback of tune
 class MidiInfo {
   Controller[] controllers;
   String filename;
-  String[] midi;
+  NoteInfo[] midi;
+  float clockRate;
   SortedMap<Integer, Integer> noteCount;
 }
 
 // responsible for reading input and feedback and output 
 class Controller {
-  int assignedNote;
-  int requestEndTime;
+  int _assignedNote;
+  int _requestEndTime;
 }
 
 MidiBus midiout;

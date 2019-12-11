@@ -7,8 +7,9 @@ class Title implements StateHandler
   String update()
   {
     if (keyPressed) {
-      if (key >= 'a' && key < 'a' + midiProcessor._files.length) {
+      if (key >= 'a' && key < 'a' + midiProcessor._midiInfos.length) {
         midiProcessor.selectSong(key - 'a');
+        println("Song " + str(midiProcessor._songNum));
         return "Player";
       }
     }
@@ -22,11 +23,11 @@ class Title implements StateHandler
     char letter = 'a';
     int x = 900, y = 100;
     textFont(titleFont);
-    for (String name : midiProcessor._files) {
+    for (MidiInfo mi : midiProcessor._midiInfos) {
       fill(0);
-      text(letter + ": " + name, x+5, y+5);
+      text(letter + ": " + mi.filename, x+5, y+5);
       fill(255);
-      text(letter + ": " + name, x, y);
+      text(letter + ": " + mi.filename, x, y);
       y += 55;
       letter ++;
     }

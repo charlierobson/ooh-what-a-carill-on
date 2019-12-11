@@ -1,6 +1,5 @@
 class MidiProcessor
 {
-  String[] _files;
   MidiInfo[] _midiInfos;
   int _songNum;
 
@@ -9,38 +8,75 @@ class MidiProcessor
   }
 
   int findAndProcessFiles() {
-    ArrayList<String> mf = new ArrayList<String>();
+    // find all files named with extension(s) '.mid.txt'
+    // parse the files and make a midi info class for each
+    ArrayList<MidiInfo> miffo = new ArrayList<MidiInfo>();
 
     for (String name : new File(dataPath("")).list()) {
       if (name.endsWith(".mid.txt")) {
-        mf.add(name.substring(0, name.indexOf('.')));
+        MidiInfo mi = processTune(name);
+        if (mi != null) {
+          miffo.add(mi);
+        }
+      }
+    }
+    _midiInfos = miffo.toArray(new MidiInfo[miffo.size()]);
+
+    return _midiInfos.length;
+  }
+
+  private MidiInfo processTune(String filename) {
+    String[] midi = loadStrings(filename);
+
+    // check the header for tempo information. we need:
+    //  PPQ or ticks-per-quarter-note
+    //  TEMPO or microseconds-per-quarter-note
+
+    float ppqn = -1;
+    for (String s : midi) {
+      if (s.contains(", Header, ")) {
+        String[] parts = s.split(",");
+        ppqn = parseFloat(parts[5]);
+        break;
       }
     }
 
-    _files = mf.toArray(new String[mf.size()]);
-    _midiInfos = new MidiInfo[_files.length];
+    if (ppqn == -1) return null;
 
-    for (int i = 0; i < _files.length; ++i) {
-      _midiInfos[i] = processTune(i);
+    float tempo = -1;
+    for (String s : midi) {
+      if (s.contains(", Tempo, ")) {
+        String[] parts = s.split(",");
+        tempo = parseFloat(parts[3]);
+        break;
+      }
     }
 
-    return _files.length;
-  }
+    if (tempo == -1) return null;
 
-  private MidiInfo processTune(int id) {
+    println(ppqn, tempo);
+
     MidiInfo midinfo = new MidiInfo();
+    midinfo.filename = filename.substring(0, filename.indexOf('.'));
+    midinfo.clockRate = tempo / ppqn / 1000.0;
 
-    midinfo.filename = _files[id];
-    midinfo.midi = loadStrings(midinfo.filename+".mid.txt");
+    ArrayList<NoteInfo> notes = new ArrayList<NoteInfo>();
+    for (String s : midi) {
+      if (s.contains(", Note_on_c,")) {
+        String[] parts = s.split(",", 6);
+        notes.add(new NoteInfo((int)(parseFloat(parts[1].trim()) * midinfo.clockRate), parseInt(parts[4].trim())));
+      }
+    }
+
+    midinfo.midi = notes.toArray(new NoteInfo[notes.size()]);
 
     // count the instances of each note in the song
     midinfo.noteCount = new TreeMap<Integer, Integer>();
 
-    for (String s : midinfo.midi) {
-      String[] parts = s.split(",", 6);
-      int note = parseInt(parts[4].trim());
-      int n = midinfo.noteCount.getOrDefault(note, 0) + 1;
-      midinfo.noteCount.put(note, n);
+    for (NoteInfo noteinfo : midinfo.midi) {
+      // if there's no note of this value in the map we'll get the default, 0, back.
+      int n = midinfo.noteCount.getOrDefault(noteinfo._note, 0) + 1;
+      midinfo.noteCount.put(noteinfo._note, n);
     }
 
     // write raw mapping
@@ -60,12 +96,11 @@ class MidiProcessor
       midinfo.controllers[i] = new Controller();
     }
 
-
     mapping = loadStrings(midinfo.filename+".map");
     if (mapping != null && mapping.length != 0) {
       for (Controller controller : midinfo.controllers) {
         String[] m = mapping[n].split("=");
-        controller.assignedNote = parseInt(m[0]);
+        controller._assignedNote = parseInt(m[0]);
         ++n;
       }
     }

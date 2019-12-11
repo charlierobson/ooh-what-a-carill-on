@@ -11,6 +11,7 @@ public class Player implements StateHandler
   {
     _startTime = millis();
     int index = midiProcessor._songNum;
+    print(index);
     _midiInfo = midiProcessor._midiInfos[index];
   }
 
@@ -18,17 +19,14 @@ public class Player implements StateHandler
   {
     _ticks = millis() - _startTime;
 
-    String[] parts = _midiInfo.midi[_pos].split(",", 6);
-    int time = parseInt(parts[1].trim());
+    NoteInfo ni = _midiInfo.midi[_pos];
 
-    while (_ticks >= time && _pos < _midiInfo.midi.length) {
-      int note = parseInt(parts[4].trim());
-      requestNote(note, _ticks);
+    while (_ticks >= ni._tick && _pos < _midiInfo.midi.length) {
+      requestNote(ni._note, _ticks);
       ++_pos;
 
       if (_pos < _midiInfo.midi.length) {
-        parts = _midiInfo.midi[_pos].split(",", 6);
-        time = parseInt(parts[1].trim());
+        ni = _midiInfo.midi[_pos];
       }
     }
 
@@ -51,14 +49,14 @@ public class Player implements StateHandler
 
     int x = 15;
     for (Controller controller : _midiInfo.controllers) {
-      if (_ticks > controller.requestEndTime) {
-        controller.requestEndTime = 0;
+      if (_ticks > controller._requestEndTime) {
+        controller._requestEndTime = 0;
       }
 
-      String noteName = noteToNoteName(controller.assignedNote);
+      String noteName = noteToNoteName(controller._assignedNote);
       fill(0);
       text(noteName, x, 60);
-      fill(controller.requestEndTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
+      fill(controller._requestEndTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
       ellipse(x+5, 75, 10, 10);
       x += 35;
     }
@@ -66,10 +64,10 @@ public class Player implements StateHandler
 
   private void requestNote(int note, int ticks) {
     for (Controller c : _midiInfo.controllers) {
-      if (c.assignedNote == note) {
+      if (c._assignedNote == note) {
         midiout.sendNoteOn(0, note, 64);
         noteOffTimes[note] = ticks + 250;
-        c.requestEndTime = ticks + 250;
+        c._requestEndTime = ticks + 250;
       }
     }
   }
