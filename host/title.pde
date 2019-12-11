@@ -2,6 +2,7 @@ class Title implements StateHandler
 {
   void begin()
   {
+    textFont(titleFontBig);
   }
 
   String update()
