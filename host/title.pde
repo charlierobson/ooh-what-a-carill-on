@@ -11,7 +11,8 @@ class Title implements StateHandler
       if (key >= 'a' && key < 'a' + midiProcessor._midiInfos.length) {
         midiProcessor.selectSong(key - 'a');
         println("Song " + str(midiProcessor._songNum));
-        return "Player";
+       // return "Player";
+ return "Test";
       }
     }
 

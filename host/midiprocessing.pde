@@ -1,3 +1,15 @@
+  String[] noteNames = {
+    "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
+  };
+
+  String noteToNoteName(int note) {
+    if (note < 21) return "-X-";
+    int nn = (note - 21) % 12;
+    int nm = note/12;
+    return noteNames[nn] + str(nm);
+  }
+
+
 class MidiProcessor
 {
   MidiInfo[] _midiInfos;

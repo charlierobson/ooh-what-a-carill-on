@@ -1,53 +1,83 @@
 public class Test implements StateHandler
 {
-  byte[] _dataOut;
-  int _buttonBits;
+  int _ticks, _endTimer;
+  int _startTime, _pos = 0;
 
-  Test() {
-    _dataOut = new byte[3];
+  Queue<NoteInfo> buttonPressings = new LinkedList<NoteInfo>();
+
+  void begin()
+  {
+    _startTime = millis();
+    textFont(titleFontSmall);
+    _pos = 0;
+    _endTimer = 10000;
   }
 
-  void begin() {
-    _dataOut[0] = 'w';
-    _dataOut[1] = 0;
-    _dataOut[2] = 0;
-    _buttonBits = 0;    
-  }
+  String update()
+  {
+    _ticks = millis() - _startTime;
+    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
 
-  String update() {
-    if (keyget) {
-      if (keycode == 'a') {
-        _dataOut[1] ^= 32;
-        serial.write('w');
-        serial.write(_dataOut[1]);
-        serial.write(_dataOut[2]);
+    if (_pos < midiInfo.midi.length) {
+      NoteInfo ni = midiInfo.midi[_pos];
+      while (_pos < midiInfo.midi.length && _ticks >= ni._tick) {
+        requestNote(ni._note, _ticks);
+        _endTimer = _ticks + 5000; // endTimer is set whenever a note is played, times out 5 secs after last note
+        ++_pos;
+
+        if (_pos < midiInfo.midi.length) {
+          ni = midiInfo.midi[_pos];
+        }
       }
-      if (keycode == 's') {
-        serial.write('r');
-        while(serial.available() < 2) { delay(1); }
-        int low = serial.read();
-        int hi = serial.read();
-        _buttonBits = 256 * hi + low;       
-      }
-      keyget = false;
     }
 
-    //while (serial.available() != 0) {      
-    //  print((char)serial.read());
-    //}
-    return null;
+    int buttonBits = 0;
+    NoteInfo ni = buttonPressings.peek();
+    if (ni != null) {
+      if (_ticks >= ni._tick) {
+        buttonBits |= ni._note;
+        buttonPressings.remove();
+      }
+    }
+
+    int lightsup = 0;
+    for (Controller controller : midiInfo.controllers) {
+      boolean active = controller.update(_ticks, buttonBits);
+      if (active) {
+        lightsup |= controller.lightMask;
+      }
+    }
+
+    return _ticks > _endTimer ? "Title" : null;
   }
 
-  void draw() {
-    background(color(0, 200, 0));
+  void draw()
+  {
+    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
 
-    for (int i = 0, mask = 512; i < 10; ++i) {
+    background(255);
+    fill(0);
+    text(midiInfo.filename, 20, 50);
+    text(str(_ticks/1000), 20, 100);
+
+    int x = 50;
+    for (Controller controller : midiInfo.controllers) {
+      String noteName = noteToNoteName(controller._assignedNote);
       fill(0);
-      if ((_buttonBits & mask) != 0) {
-        fill(color(255,0,0));
+      text(noteName, x, 150);
+      fill(controller._requestEndTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
+      ellipse(x+5, 200, 30, 30);
+      x += 50;
+    }
+  }
+
+  private void requestNote(int note, int ticks) {
+    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
+    for (Controller c : midiInfo.controllers) {
+      if (c._assignedNote == note) {
+        buttonPressings.add(new NoteInfo(ticks + 120, c.lightMask));
       }
-      rect(i * 20 + 100, 100, 15, 15);
-      mask >>= 1;
+      c.trigger(ticks, note);
     }
   }
 }
