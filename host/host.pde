@@ -15,6 +15,11 @@ void keyPressed() {
   keyget = true;
 }
 
+boolean mouseclicked;
+
+void mouseClicked() {
+  mouseclicked = true;
+}
 
 interface StateHandler
 {
@@ -46,14 +51,16 @@ class MidiInfo {
 class Controller {
   int _assignedNote;
   int _requestEndTime;
-  int lightMask;
-  int noteOffTime;
-  boolean lastTriggerState;
+  int _lightMask;
+  int _noteOffTime;
+  boolean _lastTriggerState;
 
-  void trigger(int ticks, int note) {
+  boolean trigger(int ticks, int note) {
     if (note == _assignedNote) {
       _requestEndTime = ticks + 500;
+      return true;
     }
+    return false;
   }
 
   boolean update(int ticks, int buttonMask) {
@@ -61,16 +68,16 @@ class Controller {
       _requestEndTime = 0;
     }
 
-    boolean triggered = (buttonMask & lightMask) != 0;
-    if (triggered && !lastTriggerState) {
-      noteOffTime = ticks + 500;
+    boolean triggered = (buttonMask & _lightMask) != 0;
+    if (triggered && !_lastTriggerState) {
+      _noteOffTime = ticks + 500;
       midiout.sendNoteOn(0, _assignedNote, 127);
     }
-    lastTriggerState = triggered;
+    _lastTriggerState = triggered;
 
-    if (noteOffTime != 0 && ticks > noteOffTime) {
+    if (_noteOffTime != 0 && ticks > _noteOffTime) {
       midiout.sendNoteOff(0, _assignedNote, 0);
-      noteOffTime = 0;
+      _noteOffTime = 0;
     }
 
     return _requestEndTime != 0;
@@ -88,8 +95,8 @@ void setup() {
   //  fullScreen();
   //  size(640,480);
 
-  printArray(serial.list());
-  serial = new Serial(this, Serial.list()[3], 115200); 
+  //printArray(serial.list());
+ // serial = new Serial(this, Serial.list()[3], 115200); 
 
   titleImage = loadImage("title.png");
   titleFontBig = createFont("Baskerville-Italic", 50);

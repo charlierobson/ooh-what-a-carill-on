@@ -1,16 +1,126 @@
+class SuperController {
+  int _skillLevel;
+  Controller _player;
+
+  int _bpTicks, _bpEndTicks;
+
+  int _x, _y;
+
+  SuperController(int x, int y, Controller player) {
+    _x = x;
+    _y = y;
+    _player = player;
+    _skillLevel = 5;
+    _bpEndTicks = 0;
+    _bpTicks = Integer.MAX_VALUE;
+  }
+
+
+  int getEstimatedReaction() {
+    float startVal = map(_skillLevel, 1, 10, 50, 20);
+    float endVal = map(_skillLevel, 1, 10, 250, 40);
+    return (int)(startVal + random(endVal - startVal));
+  }
+
+
+  void trigger(int ticks, int note) {
+    if (_player.trigger(ticks, note)) {
+      _bpTicks = ticks + getEstimatedReaction();
+    }
+  }
+
+  void update(int ticks) {
+    if (keyget) {
+      if (keycode == ',') {
+        for (SuperController c : controllers) {
+          if (c._skillLevel > 1) c._skillLevel = c._skillLevel - 1;
+        }
+      }
+      if (keycode == '.') {
+        for (SuperController c : controllers) {
+          if (c._skillLevel < 10) c._skillLevel = c._skillLevel + 1;
+        }
+      }
+      keyget = false;
+    }
+
+    if (mouseclicked) {
+      if (dist(mouseX, mouseY, _x, _y + 200 - 30) < 30) {
+        if (_skillLevel < 10) _skillLevel = _skillLevel + 1;
+      }
+      if (dist(mouseX, mouseY, _x, _y + 200 + 30) < 30) {
+        if (_skillLevel > 1) _skillLevel = _skillLevel - 1;
+      }
+    }
+
+    if (ticks >= _bpTicks && _bpEndTicks == 0) {
+      _bpEndTicks = _bpTicks + 375;
+    }
+    if (_bpEndTicks != 0 && ticks > _bpEndTicks) {
+      _bpEndTicks = 0;
+    }
+
+    if (_bpEndTicks != 0) {
+      _player.update(ticks, _player._lightMask);
+    } else {
+      _player.update(ticks, 0);
+    }
+  }
+
+  void draw(int ticks) {
+    fill(0);
+    textAlign(CENTER, CENTER);
+
+    String noteName = noteToNoteName(_player._assignedNote);
+    fill(0);
+    text(noteName, _x, _y);
+    fill(_player._requestEndTime > ticks ? color(255, 0, 0) : color(128, 0, 0));
+    ellipse(_x, _y + 40, 30, 30);
+
+    fill(_bpEndTicks != 0 ? color(0, 255, 0) : color(128, 0, 0));
+    ellipse(_x, _y + 100, 30, 30);
+
+
+    noFill();
+    stroke(0);
+
+    ellipse(_x, _y + 200 - 30, 30, 30);
+    text("+", _x, _y + 200 - 30);
+
+    text(str(_skillLevel), _x, _y + 200);
+
+    ellipse(_x, _y + 200 + 30, 30, 30);
+    text("-", _x, _y + 200 + 30);
+  }
+}
+
+ArrayList<SuperController> controllers = new ArrayList<SuperController>();
+
 public class Test implements StateHandler
 {
   int _ticks, _endTimer;
   int _startTime, _pos = 0;
 
-  Queue<NoteInfo> buttonPressings = new LinkedList<NoteInfo>();
-
   void begin()
   {
     _startTime = millis();
     textFont(titleFontSmall);
+
     _pos = 0;
     _endTimer = 10000;
+
+    int x = 50;
+    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
+    for (Controller c : midiInfo.controllers) {
+      controllers.add(new SuperController(x, 100, c));
+      x += 75;
+    }
+  }
+
+  private void requestNote(int ticks, int note) {
+    for (SuperController c : controllers) {
+      c.trigger(ticks, note);
+    }
   }
 
   String update()
@@ -21,7 +131,7 @@ public class Test implements StateHandler
     if (_pos < midiInfo.midi.length) {
       NoteInfo ni = midiInfo.midi[_pos];
       while (_pos < midiInfo.midi.length && _ticks >= ni._tick) {
-        requestNote(ni._note, _ticks);
+        requestNote(_ticks, ni._note);
         _endTimer = _ticks + 5000; // endTimer is set whenever a note is played, times out 5 secs after last note
         ++_pos;
 
@@ -31,22 +141,11 @@ public class Test implements StateHandler
       }
     }
 
-    int buttonBits = 0;
-    NoteInfo ni = buttonPressings.peek();
-    if (ni != null) {
-      if (_ticks >= ni._tick) {
-        buttonBits |= ni._note;
-        buttonPressings.remove();
-      }
+    for (SuperController controller : controllers) {
+      controller.update(_ticks);
     }
 
-    int lightsup = 0;
-    for (Controller controller : midiInfo.controllers) {
-      boolean active = controller.update(_ticks, buttonBits);
-      if (active) {
-        lightsup |= controller.lightMask;
-      }
-    }
+    mouseclicked = false;
 
     return _ticks > _endTimer ? "Title" : null;
   }
@@ -57,27 +156,11 @@ public class Test implements StateHandler
 
     background(255);
     fill(0);
-    text(midiInfo.filename, 20, 50);
-    text(str(_ticks/1000), 20, 100);
+    textAlign(TOP, LEFT);
+    text(midiInfo.filename, 20, 20);
 
-    int x = 50;
-    for (Controller controller : midiInfo.controllers) {
-      String noteName = noteToNoteName(controller._assignedNote);
-      fill(0);
-      text(noteName, x, 150);
-      fill(controller._requestEndTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
-      ellipse(x+5, 200, 30, 30);
-      x += 50;
-    }
-  }
-
-  private void requestNote(int note, int ticks) {
-    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
-    for (Controller c : midiInfo.controllers) {
-      if (c._assignedNote == note) {
-        buttonPressings.add(new NoteInfo(ticks + 120, c.lightMask));
-      }
-      c.trigger(ticks, note);
+    for (SuperController c : controllers) {
+      c.draw(_ticks);
     }
   }
 }

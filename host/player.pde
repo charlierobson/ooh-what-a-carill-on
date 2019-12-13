@@ -19,7 +19,7 @@ public class Player implements StateHandler
     if (_pos < midiInfo.midi.length) {
       NoteInfo ni = midiInfo.midi[_pos];
       while (_pos < midiInfo.midi.length && _ticks >= ni._tick) {
-        requestNote(ni._note, _ticks);
+        requestNote(_ticks, ni._note);
         _endTimer = _ticks + 5000; // endTimer is set whenever a note is played, times out 5 secs after last note
         ++_pos;
 
@@ -43,7 +43,7 @@ public class Player implements StateHandler
     for (Controller controller : midiInfo.controllers) {
       boolean active = controller.update(_ticks, buttonBits);
       if (active) {
-        lightsup |= controller.lightMask;
+        lightsup |= controller._lightMask;
       }
     }
 
@@ -74,7 +74,7 @@ public class Player implements StateHandler
     }
   }
 
-  private void requestNote(int note, int ticks) {
+  private void requestNote(int ticks, int note) {
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
     for (Controller c : midiInfo.controllers) {
       c.trigger(ticks, note);
