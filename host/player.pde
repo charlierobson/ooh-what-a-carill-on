@@ -29,15 +29,16 @@ public class Player implements StateHandler
       }
     }
 
-    serial.write('r');
-    while (serial.available() < 2) { 
-      delay(1);
+    int buttonBits = 0;       
+    if (serial != null) {
+      serial.write('r');
+      while (serial.available() < 2) { 
+        delay(1);
+      }
+      int low = serial.read();
+      int hi = serial.read();
+      buttonBits = 256 * hi + low;
     }
-
-    int low = serial.read();
-    int hi = serial.read();
-    int buttonBits = 256 * hi + low;       
-    println(low, hi);
 
     int lightsup = 0;
     for (Controller controller : midiInfo.controllers) {
@@ -47,9 +48,11 @@ public class Player implements StateHandler
       }
     }
 
-    serial.write('w');
-    serial.write((byte)(lightsup & 0xff));
-    serial.write((byte)(lightsup >> 8));
+    if (serial != null) {
+      serial.write('w');
+      serial.write((byte)(lightsup & 0xff));
+      serial.write((byte)(lightsup >> 8));
+    }
 
     return _ticks > _endTimer ? "Title" : null;
   }
@@ -65,10 +68,10 @@ public class Player implements StateHandler
 
     int x = 50;
     for (Controller controller : midiInfo.controllers) {
-      String noteName = noteToNoteName(controller._assignedNote);
+      String noteName = noteToNoteName(controller._nextNote);
       fill(0);
       text(noteName, x, 150);
-      fill(controller._requestEndTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
+      fill(controller._lightOffTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
       ellipse(x+5, 200, 30, 30);
       x += 50;
     }

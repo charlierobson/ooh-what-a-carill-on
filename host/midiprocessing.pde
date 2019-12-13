@@ -113,7 +113,7 @@ class MidiProcessor
     if (mapping != null && mapping.length != 0) {
       for (Controller controller : midinfo.controllers) {
         String[] m = mapping[n].split("=");
-        controller._assignedNote = parseInt(m[0]);
+        controller.assignNotes(m[0]);
         controller._lightMask = 1 << n;
         ++n;
       }

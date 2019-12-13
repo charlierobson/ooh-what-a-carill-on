@@ -13,6 +13,7 @@ class SuperController {
     _skillLevel = 5;
     _bpEndTicks = 0;
     _bpTicks = Integer.MAX_VALUE;
+    _player.reset();
   }
 
 
@@ -71,10 +72,10 @@ class SuperController {
     fill(0);
     textAlign(CENTER, CENTER);
 
-    String noteName = noteToNoteName(_player._assignedNote);
+    String noteName = noteToNoteName(_player._nextNote);
     fill(0);
     text(noteName, _x, _y);
-    fill(_player._requestEndTime > ticks ? color(255, 0, 0) : color(128, 0, 0));
+    fill(_player._lightOffTime > ticks ? color(255, 0, 0) : color(128, 0, 0));
     ellipse(_x, _y + 40, 30, 30);
 
     fill(_bpEndTicks != 0 ? color(0, 255, 0) : color(128, 0, 0));
@@ -110,6 +111,7 @@ public class Test implements StateHandler
     _endTimer = 10000;
 
     int x = 50;
+    controllers.clear();
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
     for (Controller c : midiInfo.controllers) {
       controllers.add(new SuperController(x, 100, c));
