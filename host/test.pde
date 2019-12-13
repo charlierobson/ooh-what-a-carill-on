@@ -1,3 +1,5 @@
+
+
 class SuperController {
   int _skillLevel;
   Controller _player;
@@ -16,13 +18,11 @@ class SuperController {
     _player.reset();
   }
 
-
   int getEstimatedReaction() {
     float startVal = map(_skillLevel, 1, 10, 50, 20);
-    float endVal = map(_skillLevel, 1, 10, 250, 40);
+    float endVal = map(_skillLevel, 1, 10, 500, 100);
     return (int)(startVal + random(endVal - startVal));
   }
-
 
   void trigger(int ticks, int note) {
     if (_player.trigger(ticks, note)) {
@@ -92,6 +92,12 @@ class SuperController {
 
     ellipse(_x, _y + 200 + 30, 30, 30);
     text("-", _x, _y + 200 + 30);
+
+    float ave = totalTickDelta / totalNoteCount;
+
+    text("Total tick delta: " + str(totalTickDelta), 100, _y + 300);
+    text("Total note count: " + str(totalNoteCount), 50, _y + 330);
+    text("Average tick delta: " + str(floor(ave)), 50, _y + 360);
   }
 }
 
@@ -117,6 +123,9 @@ public class Test implements StateHandler
       controllers.add(new SuperController(x, 100, c));
       x += 75;
     }
+
+    totalTickDelta = 0;
+    totalNoteCount = 0;
   }
 
   private void requestNote(int ticks, int note) {

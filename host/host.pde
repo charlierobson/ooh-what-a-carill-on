@@ -38,6 +38,11 @@ class NoteInfo {
   }
 }
 
+
+float totalTickDelta;
+float totalNoteCount;
+
+
 // responsible for collating data related to playback of tune
 class MidiInfo {
   Controller[] controllers;
@@ -51,11 +56,13 @@ class MidiInfo {
 class Controller {
   ArrayList<Integer> _assignedNotes = new ArrayList<Integer>();
   int _nextNote;
+  int _lightOnTime;
   int _lightOffTime;
   int _lightMask;
   int _noteOffTime;
   int _noteInstances;
   boolean _lastTriggerState;
+  boolean _noteMissed;
 
   boolean _playOdd = true;
   boolean _playEven = true;
@@ -63,7 +70,9 @@ class Controller {
   void reset() {
     _noteInstances = 0;
     _lightOffTime = 0;
+    _lightOnTime = 0;
     _noteOffTime = 0;
+    _noteMissed = false;
   }
 
   void assignNotes(String notes) {
@@ -79,14 +88,15 @@ class Controller {
         _assignedNotes.add(parseInt(v));
       }
     } else if (notes.contains(".")) {
-      println("it's a timeshare: " + notes);
-      // play either odd or even instances of our assigned note
-      String[] noteValues = notes.split(".");
-      print("it's a timeshare: ");
-      printArray(noteValues);
-      println(".");
-      _assignedNotes.add(parseInt(noteValues[0]));        
-      if (noteValues[1] == "1") {
+      //println("it's a timeshare: " + notes);
+      //// play either odd or even instances of our assigned note
+      //String[] noteValues = "65.54".trim().split(".");
+      //print("it's a timeshare: ");
+      //printArray(noteValues);
+      //println(".");
+      //_assignedNotes.add(parseInt(noteValues[0]));        
+      _assignedNotes.add(65);        
+      if ("1" == "1") {
         _playOdd = true;
         _playEven = false;
       } else {
@@ -99,6 +109,13 @@ class Controller {
     }
   }
 
+  void updateDelta(int delta) {
+    float oldAverage = totalTickDelta / (totalNoteCount-1);
+    totalTickDelta += delta;
+    float newAverage = totalTickDelta / totalNoteCount;
+    println(newAverage - oldAverage);
+  }
+
   boolean trigger(int ticks, int note) {
     if (_assignedNotes.contains(note)) {
       _noteInstances++;
@@ -106,7 +123,17 @@ class Controller {
         // turn on the light, and note which .. note we'll play next
         _nextNote = note;
         // light is on when lightOffTime != 0
+        _lightOnTime = ticks;
         _lightOffTime = ticks + 500;
+
+        ++totalNoteCount;
+
+        if (_noteMissed) {
+          updateDelta(500);
+        }
+
+        _noteMissed = true;
+
         return true;
       }
     }
@@ -124,7 +151,16 @@ class Controller {
     if (triggered && !_lastTriggerState) {
       // play a note when buttons state transitions not triggered -> triggered
       midiout.sendNoteOn(0, _nextNote, 127);
+
+      // handle case where player hits note or is early
+      int tickDelta = ticks - _lightOnTime;
+      if (tickDelta > 500) {
+        tickDelta = 500;
+      }
+      updateDelta(tickDelta);
+
       _noteOffTime = ticks + 500;
+      _noteMissed = false;
     }
     _lastTriggerState = triggered;
 
