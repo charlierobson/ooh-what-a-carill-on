@@ -1,13 +1,13 @@
-  String[] noteNames = {
-    "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
-  };
+String[] noteNames = {
+  "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
+};
 
-  String noteToNoteName(int note) {
-    if (note < 21) return "-X-";
-    int nn = (note - 21) % 12;
-    int nm = note/12;
-    return noteNames[nn] + str(nm);
-  }
+String noteToNoteName(int note) {
+  if (note < 21) return "-X-";
+  int nn = (note - 21) % 12;
+  int nm = note/12;
+  return noteNames[nn] + str(nm);
+}
 
 
 class MidiProcessor
@@ -102,12 +102,13 @@ class MidiProcessor
     for (String ss : mapping) s2.add(ss);
     saveStrings(dataPath(midinfo.filename + ".map.txt"), s2.toArray(new String[s2.size()]));
 
-    // map notes to controllers using cooked map
+    // create controllers
     midinfo.controllers = new Controller[10];
     for (int i = 0; i < 10; ++i) {
       midinfo.controllers[i] = new Controller();
     }
 
+    // map notes to controllers using cooked map
     int n = 0;
     mapping = loadStrings(midinfo.filename+".map");
     if (mapping != null && mapping.length != 0) {

@@ -52,6 +52,8 @@ class MidiInfo {
   SortedMap<Integer, Integer> noteCount;
 }
 
+float score = 0;
+
 // responsible for reading input and feedback and output 
 class Controller {
   ArrayList<Integer> _assignedNotes = new ArrayList<Integer>();
@@ -82,21 +84,18 @@ class Controller {
     //   65.x      - responsible for 1/2 of a some particular note
 
     if (notes.contains(",")) {
-      println("it's a multi: " + notes);
+      // one controller multiple notes
+      //println("it's a multi: " + notes);
       String[] noteValues = notes.split(",");
       for (String v : noteValues) {
         _assignedNotes.add(parseInt(v));
       }
     } else if (notes.contains(".")) {
+      // play either odd or even instances of our assigned note
       //println("it's a timeshare: " + notes);
-      //// play either odd or even instances of our assigned note
-      //String[] noteValues = "65.54".trim().split(".");
-      //print("it's a timeshare: ");
-      //printArray(noteValues);
-      //println(".");
-      //_assignedNotes.add(parseInt(noteValues[0]));        
-      _assignedNotes.add(65);        
-      if ("1" == "1") {
+      String[] noteValues = notes.trim().split("\\.");
+      _assignedNotes.add(parseInt(noteValues[0]));        
+      if (noteValues[1] == "1") {
         _playOdd = true;
         _playEven = false;
       } else {
@@ -104,7 +103,8 @@ class Controller {
         _playEven = true;
       }
     } else {
-      println("it's a regular: " + notes);
+      // straight up
+      //println("it's a regular: " + notes);
       _assignedNotes.add(parseInt(notes));
     }
   }
@@ -113,7 +113,8 @@ class Controller {
     float oldAverage = totalTickDelta / (totalNoteCount-1);
     totalTickDelta += delta;
     float newAverage = totalTickDelta / totalNoteCount;
-    println(newAverage - oldAverage);
+    score += ceil(newAverage - oldAverage);
+    println("delta ave: " + str(ceil(newAverage - oldAverage)) + " score: " + str(floor(score)));
   }
 
   boolean trigger(int ticks, int note) {

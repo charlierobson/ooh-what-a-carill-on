@@ -126,6 +126,7 @@ public class Test implements StateHandler
 
     totalTickDelta = 0;
     totalNoteCount = 0;
+    score = 0;
   }
 
   private void requestNote(int ticks, int note) {
