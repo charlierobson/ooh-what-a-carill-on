@@ -194,7 +194,9 @@ MidiProcessor midiProcessor;
 StateHandler currentState;
 
 void setup() {
-  size(1440, 900);
+  size(1920, 1080);
+  pixelDensity(2);
+
   //  fullScreen();
   //  size(640,480);
 
