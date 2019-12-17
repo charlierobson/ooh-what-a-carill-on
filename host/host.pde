@@ -95,7 +95,7 @@ class Controller {
       //println("it's a timeshare: " + notes);
       String[] noteValues = notes.trim().split("\\.");
       _assignedNotes.add(parseInt(noteValues[0]));        
-      if (noteValues[1] == "1") {
+      if (noteValues[1].compareTo("1") == 0) {
         _playOdd = true;
         _playEven = false;
       } else {
@@ -120,8 +120,21 @@ class Controller {
   boolean trigger(int ticks, int note) {
     if (_assignedNotes.contains(note)) {
       _noteInstances++;
-      if ((_noteInstances & 1) == 1 && _playOdd || (_noteInstances & 1) == 0 && _playEven) {
-        // turn on the light, and note which .. note we'll play next
+
+      //print("Note accepted " + str(note));
+      //if (_playOdd != _playEven) {
+      //  print("  note share");
+      //}
+      //if (((_noteInstances & 1) == 1) && _playOdd || ((_noteInstances & 1) == 0) && _playEven) {
+      //  print("  i got it!");
+      //}
+      //else
+      //  print("  i left it");
+      //println("");
+  
+      if (((_noteInstances & 1) == 1) && _playOdd || ((_noteInstances & 1) == 0) && _playEven) {
+         // turn on the light, and note which .. note we'll play next
+
         _nextNote = note;
         // light is on when lightOffTime != 0
         _lightOnTime = ticks;
