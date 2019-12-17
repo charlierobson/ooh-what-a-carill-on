@@ -49,6 +49,7 @@ class MidiInfo {
   float clockRate;
   SortedMap<Integer, Integer> noteCount;
   String[] _lyrics;
+  boolean _mapped;
 }
 
 float totalTickDelta;
