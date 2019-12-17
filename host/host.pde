@@ -48,6 +48,7 @@ class MidiInfo {
   NoteInfo[] midi;
   float clockRate;
   SortedMap<Integer, Integer> noteCount;
+  String[] _lyrics;
 }
 
 float totalTickDelta;

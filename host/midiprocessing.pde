@@ -120,6 +120,9 @@ class MidiProcessor
       }
     }
 
+    // read lyrics
+    midinfo._lyrics = loadStrings(midinfo.filename+".lyrics.txt");
+    
     return midinfo;
   }
 }

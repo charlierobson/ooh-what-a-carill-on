@@ -12,9 +12,22 @@ public class Player implements StateHandler
     _endTimer = 10000;
     _bell = new int[10];
     background(254);
-    for(int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; ++i) {
       image (dingdong[0], i * 190, 0);
       _bell[0] = 0;
+    }
+
+    textAlign(CENTER, CENTER);
+    textFont(titleFontBig);
+    fill(0);
+
+    int y = 300;
+    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
+    if (midiInfo._lyrics != null) {
+      for (String s : midiInfo._lyrics) {
+        text(s, width/2, y);
+        y += 50;
+      }
     }
   }
 
@@ -71,7 +84,7 @@ public class Player implements StateHandler
 
   void draw()
   {
-    for(int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; ++i) {
       image (dingdong[_bell[i]], i * 190, 0);
       if (_bell[i] != 0) {
         ++_bell[i];
@@ -79,7 +92,7 @@ public class Player implements StateHandler
           _bell[i] = 0;
         }
       }
-    }    
+    }
   }
 
   private void requestNote(int ticks, int note) {

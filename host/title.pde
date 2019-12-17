@@ -28,8 +28,9 @@ class Title implements StateHandler
   {
     image(titleImage, 0, 0);
     char letter = 'a';
-    int x = 1200, y = 100;
+    int x = 1400, y = 100;
     textFont(titleFontBig);
+    textAlign(CENTER,CENTER);
     for (MidiInfo mi : midiProcessor._midiInfos) {
       fill(0);
       text(letter + ": " + mi.filename, x+3, y+3);
