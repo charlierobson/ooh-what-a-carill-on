@@ -22,7 +22,7 @@ class Title implements StateHandler
   {
     image(titleImage, 0, 0);
     char letter = 'a';
-    int x = 900, y = 100;
+    int x = 1200, y = 100;
     textFont(titleFontBig);
     for (MidiInfo mi : midiProcessor._midiInfos) {
       fill(0);
