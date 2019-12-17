@@ -2,6 +2,7 @@ public class Player implements StateHandler
 {
   int _ticks, _endTimer;
   int _startTime, _pos = 0;
+  int[] _bell;
 
   void begin()
   {
@@ -9,6 +10,12 @@ public class Player implements StateHandler
     textFont(titleFontSmall);
     _pos = 0;
     _endTimer = 10000;
+    _bell = new int[10];
+    background(254);
+    for(int i = 0; i < 10; ++i) {
+      image (dingdong[0], i * 190, 0);
+      _bell[0] = 0;
+    }
   }
 
   String update()
@@ -40,12 +47,17 @@ public class Player implements StateHandler
       buttonBits = 256 * hi + low;
     }
 
+    int n = 0;
     int lightsup = 0;
     for (Controller controller : midiInfo.controllers) {
       boolean active = controller.update(_ticks, buttonBits);
       if (active) {
         lightsup |= controller._lightMask;
       }
+      if (controller._justTriggered) {
+        _bell[n] = 1;
+      }
+      ++n;
     }
 
     if (serial != null) {
@@ -59,7 +71,15 @@ public class Player implements StateHandler
 
   void draw()
   {
-    background(254);
+    for(int i = 0; i < 10; ++i) {
+      image (dingdong[_bell[i]], i * 190, 0);
+      if (_bell[i] != 0) {
+        ++_bell[i];
+        if (_bell[i] == dingdong.length) {
+          _bell[i] = 0;
+        }
+      }
+    }    
   }
 
   private void requestNote(int ticks, int note) {

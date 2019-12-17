@@ -3,6 +3,12 @@ class Title implements StateHandler
   void begin()
   {
     textFont(titleFontBig);
+
+    if (serial != null) {
+      serial.write('w');
+      serial.write(0);
+      serial.write(0);
+    }
   }
 
   String update()
@@ -11,7 +17,7 @@ class Title implements StateHandler
       if (key >= 'a' && key < 'a' + midiProcessor._midiInfos.length) {
         midiProcessor.selectSong(key - 'a');
         println("Song " + str(midiProcessor._songNum));
-       return "Player";
+        return "Player";
       }
     }
 

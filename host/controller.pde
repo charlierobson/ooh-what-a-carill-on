@@ -8,6 +8,7 @@ class Controller {
   int _noteOffTime;
   int _noteInstances;
   boolean _lastTriggerState;
+  boolean _justTriggered;
   boolean _noteMissed;
 
   boolean _playOdd = true;
@@ -65,19 +66,8 @@ class Controller {
     if (_assignedNotes.contains(note)) {
       _noteInstances++;
 
-      //print("Note accepted " + str(note));
-      //if (_playOdd != _playEven) {
-      //  print("  note share");
-      //}
-      //if (((_noteInstances & 1) == 1) && _playOdd || ((_noteInstances & 1) == 0) && _playEven) {
-      //  print("  i got it!");
-      //}
-      //else
-      //  print("  i left it");
-      //println("");
-  
       if (((_noteInstances & 1) == 1) && _playOdd || ((_noteInstances & 1) == 0) && _playEven) {
-         // turn on the light, and note which .. note we'll play next
+        // turn on the light, and note which .. note we'll play next
 
         _nextNote = note;
         // light is on when lightOffTime != 0
@@ -105,10 +95,12 @@ class Controller {
       _lightOffTime = 0;
     }
 
+    _justTriggered = false;
     boolean triggered = (buttonMask & _lightMask) != 0;
     if (triggered && !_lastTriggerState) {
       // play a note when buttons state transitions not triggered -> triggered
       midiout.sendNoteOn(0, _nextNote, 127);
+      _justTriggered = true;
 
       // handle case where player hits note or is early
       int tickDelta = ticks - _lightOnTime;

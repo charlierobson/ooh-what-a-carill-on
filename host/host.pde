@@ -78,25 +78,7 @@ void setup() {
   titleFontBig = createFont("Baskerville-Italic", 50);
   titleFontSmall = createFont("Baskerville-Italic", 25);
 
-  PImage[] dingdongtemp = Gif.getPImages(this, "dingdong.gif");
-  dingdong = new PImage[dingdongtemp.length];
-
-  int w = dingdongtemp[0].width;
-  int h = dingdongtemp[0].height;
-  int n = 0;
-  for(PImage frame : dingdongtemp) {
-    PImage newImg = createImage( w, h, ARGB );
-    for (int i = 0; i < w * h; ++i) {
-      if ((frame.pixels[i] & 0x00ffffff) == 0x00fefefe) {
-        newImg.pixels[i] = 0;
-      }
-      else {
-        newImg.pixels[i] = frame.pixels[i];
-      }
-    }
-    dingdong[n] = newImg;
-    ++n;
-  }
+  dingdong = Gif.getPImages(this, "dingdong.gif");
 
   midiout = new MidiBus(this, -1, 1);
   MidiBus.list();
@@ -114,7 +96,6 @@ void setup() {
 }
 
 
-int fc = 0;
 void draw() {
   String newState = currentState.update();
   if (newState != null) {
@@ -125,6 +106,4 @@ void draw() {
   }
 
   currentState.draw();
-  image(dingdong[fc % dingdong.length], 10, 10);
-  ++fc;
 }
