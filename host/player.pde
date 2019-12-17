@@ -59,22 +59,7 @@ public class Player implements StateHandler
 
   void draw()
   {
-    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
-
-    background(255);
-    fill(0);
-    text(midiInfo.filename, 20, 50);
-    text(str(_ticks/1000), 20, 100);
-
-    int x = 50;
-    for (Controller controller : midiInfo.controllers) {
-      String noteName = noteToNoteName(controller._nextNote);
-      fill(0);
-      text(noteName, x, 150);
-      fill(controller._lightOffTime > _ticks ? color(255, 0, 0) : color(128, 0, 0));
-      ellipse(x+5, 200, 30, 30);
-      x += 50;
-    }
+    background(254);
   }
 
   private void requestNote(int ticks, int note) {

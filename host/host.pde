@@ -106,8 +106,8 @@ void setup() {
 
   states = new HashMap<String, StateHandler>();
   states.put("Title", new Title());
-  states.put("Player", new Test());
-  //states.put("Player", new Player());
+  //states.put("Player", new Test());
+  states.put("Player", new Player());
 
   currentState = states.get("Title");
   currentState.begin();
