@@ -1,5 +1,5 @@
 away in a manger edit
-60=12
+60=6
 62=6
 64=10
 65=40
