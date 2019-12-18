@@ -85,20 +85,21 @@ void setup() {
 
   states = new HashMap<String, StateHandler>();
 
-  // test mode
-  states.put("Ready", new Title());  
-  states.put("Player", new Test());
-  states.put("Results", new Results());
-
-  ////production mode
-  //states.put("Ready", new Ready());
-  //states.put("Title", new Title());
-  //states.put("Player", new Player());
+  //// test mode
+  //states.put("Ready", new Title());  
+  //states.put("Player", new Test());
   //states.put("Results", new Results());
+
+  //production mode
+  states.put("Ready", new Ready());
+  states.put("Title", new Title());
+  states.put("Player", new Player());
+  states.put("Results", new Results());
 
   statsDatabase = new ArrayList<Stats>();
 
-  currentState = states.get("Ready");
+//  currentState = states.get("Ready");
+    currentState = states.get("Title");
   currentState.begin();
 }
 

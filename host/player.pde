@@ -5,6 +5,33 @@ public class Player implements StateHandler
   int[] _bell;
   int _songLengthSecs;
 
+  void drawLyrics(String[] lyrics, int page) {
+
+    if (lyrics != null) {
+      fill(254);
+      noStroke();
+      rect(0, 200, width, height);
+
+      fill(0);
+      textAlign(CENTER, CENTER);
+      textFont(titleFontBig);
+
+      int y = 300;
+      int idx = 0;
+      for (int i = 0; i < page; ++i) {
+        while (!lyrics[idx].equals("#")) {
+          ++idx;
+        }
+        ++idx;
+      }
+      for (; idx < lyrics.length; ++idx) {
+        if (lyrics[idx].equals("#")) break;
+        text(lyrics[idx], width/2, y);
+        y += 50;
+      }
+    }
+  }
+
   void begin()
   {
     _startTime = millis();
@@ -18,19 +45,8 @@ public class Player implements StateHandler
       _bell[0] = 0;
     }
 
-    textAlign(CENTER, CENTER);
-    textFont(titleFontBig);
-    fill(0);
-
-    int y = 300;
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
-    if (midiInfo._lyrics != null) {
-      for (String s : midiInfo._lyrics) {
-        if (s.equals("#")) break;
-        text(s, width/2, y);
-        y += 50;
-      }
-    }
+    drawLyrics(midiInfo._lyrics, 0);
 
     _songLengthSecs = ceil((float)midiInfo.midi[midiInfo.midi.length - 1]._tick / 1000);
 
