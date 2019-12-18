@@ -45,6 +45,7 @@ class NoteInfo {
 class MidiInfo {
   Controller[] controllers;
   String filename;
+  String displayName;
   NoteInfo[] midi;
   float clockRate;
   SortedMap<Integer, Integer> noteCount;
@@ -62,11 +63,8 @@ StateHandler currentState;
 
 
 void setup() {
-  size(1920, 1080);
-  pixelDensity(2);
-
-  //  fullScreen();
-  //  size(640,480);
+  //size(1920, 1080);
+  fullScreen(2);
 
   try {
     printArray(Serial.list());

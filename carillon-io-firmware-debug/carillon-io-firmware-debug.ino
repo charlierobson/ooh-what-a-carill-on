@@ -6,7 +6,7 @@ inline int lightToPin(int num) {
 
 void buttonLight(int num, int state) {
   digitalWrite(lightToPin(num), state);
-  beepees[num] = 128 + random(50);
+  beepees[num] = 63;
 }
 
 void setup() {
@@ -47,8 +47,8 @@ void loop() {
     bb |= debounce[i] == 0xff ? 1 : 0;
     if (beepees[i] != 0) {
       --beepees[i];
-      bb |= beepees[i] < 64 ? 1 : 0;
-    }  
+      bb |= 1;
+    }
   }
 
   if (Serial.available() > 0) {

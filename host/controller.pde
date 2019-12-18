@@ -70,7 +70,7 @@ class Controller {
         // turn on the light, and note which .. note we'll play next
 
         _nextNote = note;
-        midiout.sendNoteOn(0, _nextNote, 127);
+//        midiout.sendNoteOn(0, _nextNote, 127);
 
         // light is on when lightOffTime != 0
         _lightOnTime = ticks;
