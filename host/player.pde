@@ -5,8 +5,17 @@ public class Player implements StateHandler
   int[] _bell;
   int _songLengthSecs;
 
-  void drawLyrics(String[] lyrics, int page) {
+  int renderPage(String[] lyrics, int startIdx, int x) {
+    int y = 300;
+    for (int idx = startIdx; idx < lyrics.length; ++idx) {
+      if (lyrics[idx].equals("#")) return idx + 1;
+      text(lyrics[idx], x, y);
+      y += 50;
+    }
+    return 0;
+  }
 
+  void drawLyrics(String[] lyrics, int page) {
     if (lyrics != null) {
       fill(254);
       noStroke();
@@ -18,16 +27,11 @@ public class Player implements StateHandler
 
       int y = 300;
       int idx = 0;
-      for (int i = 0; i < page; ++i) {
-        while (!lyrics[idx].equals("#")) {
-          ++idx;
-        }
-        ++idx;
-      }
-      for (; idx < lyrics.length; ++idx) {
-        if (lyrics[idx].equals("#")) break;
-        text(lyrics[idx], width/2, y);
-        y += 50;
+      if (Arrays.asList(lyrics).contains("#")) {
+        idx = renderPage(lyrics, 0, width/3-100);
+        renderPage(lyrics, idx, width/3*2+100);
+      } else {
+        renderPage(lyrics, 0, width/2);
       }
     }
   }
