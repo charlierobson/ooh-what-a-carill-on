@@ -12,14 +12,12 @@ Serial serial = null;
 
 int keycode;
 boolean keyget = false;
-
 void keyPressed() {
   keycode = key;
   keyget = true;
 }
 
 boolean mouseclicked;
-
 void mouseClicked() {
   mouseclicked = true;
 }
@@ -66,13 +64,13 @@ void setup() {
   //size(1920, 1080);
   fullScreen(2);
 
-  try {
-    printArray(Serial.list());
-    serial = new Serial(this, Serial.list()[3], 115200);
-  }
-  catch(Exception ex) {
-    // no serial port available
-  }
+  //try {
+  //  printArray(Serial.list());
+  //  serial = new Serial(this, Serial.list()[3], 115200);
+  //}
+  //catch(Exception ex) {
+  //  // no serial port available
+  //}
 
   titleImage = loadImage("title.png");
   titleFontBig = createFont("Baskerville-Italic", 50);

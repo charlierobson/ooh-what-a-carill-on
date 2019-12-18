@@ -1,6 +1,12 @@
+import java.util.LinkedList;
+import java.util.Queue;
+
 // responsible for reading input and feedback and output 
 class Controller {
   ArrayList<Integer> _assignedNotes = new ArrayList<Integer>();
+
+  Queue<NoteInfo> _noteQueue = new LinkedList<NoteInfo>(); 
+
   int _nextNote;
   int _lightOnTime;
   int _lightOffTime;
@@ -20,6 +26,7 @@ class Controller {
     _lightOnTime = 0;
     _noteOffTime = 0;
     _noteMissed = false;
+    _noteQueue.clear();
   }
 
   void assignNotes(String notes) {
@@ -63,26 +70,27 @@ class Controller {
   }
 
   boolean trigger(int ticks, int note) {
+    // check if we respond to this note
+    //
     if (_assignedNotes.contains(note)) {
+      // we do! keep track of how many instances of the note have been played
+      // some controllers only respond to every other instance of a note
+      // playodd and playeven are both true for controllers that respond to all notes
+      //
       _noteInstances++;
-
       if (((_noteInstances & 1) == 1) && _playOdd || ((_noteInstances & 1) == 0) && _playEven) {
         // turn on the light, and note which .. note we'll play next
-
-        _nextNote = note;
-//        midiout.sendNoteOn(0, _nextNote, 127);
+        //
+        _noteQueue.add(new NoteInfo(ticks, note));
 
         // light is on when lightOffTime != 0
+        //
         _lightOnTime = ticks;
         _lightOffTime = ticks + 500;
 
+        // total notes requested
+        //
         ++totalNoteCount;
-
-        if (_noteMissed) {
-          updateDelta(500);
-        }
-
-        _noteMissed = true;
 
         return true;
       }
@@ -93,23 +101,34 @@ class Controller {
   // returns true if light is on
   //
   boolean update(int ticks, int buttonMask) {
+    // check if it's time to turn the lights out
+    //
     if (ticks > _lightOffTime) {
       _lightOffTime = 0;
     }
 
+    // flag if we've been triggered just now
+    //
     _justTriggered = false;
+
     boolean triggered = (buttonMask & _lightMask) != 0;
     if (triggered && !_lastTriggerState) {
       // play a note when buttons state transitions not triggered -> triggered
-      midiout.sendNoteOn(0, _nextNote, 127);
-      _justTriggered = true;
-
-      // handle case where player hits note or is early
-      int tickDelta = ticks - _lightOnTime;
-      if (tickDelta > 500) {
-        tickDelta = 500;
+      //
+      if (_noteQueue.size() == 0) {
+        // uh-oh, nothing in queue
+        //
+        //stats.earlyNote();
+      } else {
+        NoteInfo ni = _noteQueue.remove();
+        midiout.sendNoteOn(0, ni._note, 127);
+        if (_noteQueue.size() != 0) {
+          // stats.missedNote(_noteQueue.size());
+          _noteQueue.clear();
+        }
       }
-      updateDelta(tickDelta);
+
+      _justTriggered = true;
 
       _noteOffTime = ticks + 500;
       _noteMissed = false;

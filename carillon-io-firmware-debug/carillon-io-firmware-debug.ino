@@ -6,7 +6,7 @@ inline int lightToPin(int num) {
 
 void buttonLight(int num, int state) {
   digitalWrite(lightToPin(num), state);
-  beepees[num] = 63;
+  if (state) beepees[num] = 20;
 }
 
 void setup() {
@@ -26,6 +26,7 @@ void setup() {
   }
   for (int i = 0; i < 10; ++i) {
     buttonLight(i, 0);
+    beepees[i] = 0;
     delay(50);
   }
 }
@@ -33,22 +34,11 @@ void setup() {
 byte debounce[10];
 
 void loop() {
-
-  // bb collects a 1 bit for every button which is deemed to be held after debouncing
-  int bb = 0;
-
   // loop from 0..9, but check pins in order 20..2
-  for(int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 10; ++i) {
     // button is debounced when all the input collected over the last 8 cycles was 1
     debounce[i] <<= 1;
-    debounce[i] |= digitalRead(20 - (i*2)) == LOW ? 1 : 0;
-
-    bb <<= 1;
-    bb |= debounce[i] == 0xff ? 1 : 0;
-    if (beepees[i] != 0) {
-      --beepees[i];
-      bb |= 1;
-    }
+    debounce[i] |= digitalRead(20 - (i * 2)) == LOW ? 1 : 0;
   }
 
   if (Serial.available() > 0) {
@@ -67,6 +57,16 @@ void loop() {
       }
     }
     else if (cmd == 'r') {
+      // bb collects a 1 bit for every button which is deemed to be held after debouncing
+      int bb = 0;
+      for (int i = 0; i < 10; ++i) {
+        bb <<= 1;
+        bb |= debounce[i] == 0xff ? 1 : 0;
+        if (beepees[i] != 0) {
+          --beepees[i];
+          bb |= 1;
+        }
+      }
       Serial.write((byte)(bb & 255));
       Serial.write((byte)(bb >> 8));
     }

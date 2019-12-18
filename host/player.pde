@@ -56,7 +56,7 @@ public class Player implements StateHandler
         delay(1);
       }
       int low = serial.read();
-      int hi = serial.read();
+      int hi = serial.read();      
       buttonBits = 256 * hi + low;
     }
 
