@@ -92,12 +92,6 @@ class SuperController {
 
     ellipse(_x, _y + 200 + 30, 30, 30);
     text("-", _x, _y + 200 + 30);
-
-    float ave = totalTickDelta / totalNoteCount;
-
-    text("Total tick delta: " + str(totalTickDelta), 100, _y + 300);
-    text("Total note count: " + str(totalNoteCount), 50, _y + 330);
-    text("Average tick delta: " + str(floor(ave)), 50, _y + 360);
   }
 }
 
@@ -123,10 +117,8 @@ public class Test implements StateHandler
       controllers.add(new SuperController(x, 100, c));
       x += 75;
     }
-
-    totalTickDelta = 0;
-    totalNoteCount = 0;
-    score = 0;
+    statsDatabase.clear();
+    stats = new Stats();
   }
 
   private void requestNote(int ticks, int note) {
@@ -138,6 +130,15 @@ public class Test implements StateHandler
   String update()
   {
     _ticks = millis() - _startTime;
+
+    int secs = _ticks / 1000;
+    if (secs != statsDatabase.size() )
+    {
+      statsDatabase.add(stats);
+      stats.dump();
+      stats = new Stats();
+    }
+    
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
 
     if (_pos < midiInfo.midi.length) {

@@ -15,11 +15,9 @@ class Controller {
   int _lightOnTime;
   int _lightOffTime;
   int _lightMask;
-  int _noteOffTime;
   int _noteInstances;
   boolean _lastTriggerState;
   boolean _justTriggered;
-  boolean _noteMissed;
 
   boolean _playOdd = true;
   boolean _playEven = true;
@@ -28,28 +26,24 @@ class Controller {
     _noteInstances = 0;
     _lightOffTime = 0;
     _lightOnTime = 0;
-    _noteOffTime = 0;
-    _noteMissed = false;
-    _noteOnQueue.clear();
+    _noteOnStack.clear();
     _noteOffQueue.clear();
   }
 
   void assignNotes(String notes) {
-    // string is of form:
+    // notes string is of form:
     //   65        - responsible for single note
     //   65,66,..  - responsible for multiple notes    
-    //   65.x      - responsible for 1/2 of a some particular note
+    //   65.x      - responsible for 1/2 of instances of some particular note
 
     if (notes.contains(",")) {
       // one controller multiple notes
-      //println("it's a multi: " + notes);
       String[] noteValues = notes.split(",");
       for (String v : noteValues) {
         _assignedNotes.add(parseInt(v));
       }
     } else if (notes.contains(".")) {
       // play either odd or even instances of our assigned note
-      //println("it's a timeshare: " + notes);
       String[] noteValues = notes.trim().split("\\.");
       _assignedNotes.add(parseInt(noteValues[0]));        
       if (noteValues[1].compareTo("1") == 0) {
@@ -61,17 +55,8 @@ class Controller {
       }
     } else {
       // straight up
-      //println("it's a regular: " + notes);
       _assignedNotes.add(parseInt(notes));
     }
-  }
-
-  void updateDelta(int delta) {
-    float oldAverage = totalTickDelta / (totalNoteCount-1);
-    totalTickDelta += delta;
-    float newAverage = totalTickDelta / totalNoteCount;
-    score += ceil(newAverage - oldAverage);
-    println("delta ave: " + str(ceil(newAverage - oldAverage)) + " score: " + str(floor(score)));
   }
 
   boolean trigger(int ticks, int note) {
@@ -88,14 +73,15 @@ class Controller {
         //
         _noteOnStack.push(new NoteInfo(ticks, note));
 
+        // test mode
+        if (serial == null) {
+          midiout.sendNoteOn(0, note, 127);
+        }
+
         // light is on when lightOffTime != 0
         //
         _lightOnTime = ticks;
         _lightOffTime = ticks + 500;
-
-        // total notes requested
-        //
-        ++totalNoteCount;
 
         return true;
       }
@@ -123,36 +109,33 @@ class Controller {
       if (_noteOnStack.size() == 0) {
         // uh-oh, nothing ready to play
         //
-        //stats.earlyNote();
+        stats.early();
       } else {
         // get latest note from the stack and play it
         NoteInfo ni = _noteOnStack.pop();
         midiout.sendNoteOn(0, ni._note, 127);
 
         // note how long it took to respond
-        //stats.addDelta(ticks - ni._tick);
+        stats.delta(ticks - ni._tick);
 
         // adjust time into the future and add note to note-off queue
         ni._tick = ticks + 300;
         _noteOffQueue.add(ni);
 
         // if the on stack isn't empty it means we missed some notes...
-        if (_noteOnStack.size() != 0) {
-          // stats.missedNote(_noteQueue.size());
-          _noteOnStack.clear();
+        while (_noteOnStack.size() != 0) {
+           stats.missed();
+          _noteOnStack.pop();
         }
       }
-
       _justTriggered = true;
-
-      _noteOffTime = ticks + 500;
-      _noteMissed = false;
     }
     _lastTriggerState = triggered;
 
-    if (_noteOffTime != 0 && ticks > _noteOffTime) {
-      midiout.sendNoteOff(0, _nextNote, 0); // !!!! edge condition n- use queue??
-      _noteOffTime = 0;
+    // retire notes if necessary
+    while(_noteOffQueue.peek() != null && _noteOffQueue.peek()._tick < ticks) {
+      NoteInfo ni = _noteOffQueue.remove();
+      midiout.sendNoteOff(0, ni._note, 0);
     }
 
     return _lightOffTime != 0;

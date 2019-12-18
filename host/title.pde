@@ -6,9 +6,9 @@ class Title implements StateHandler
 
     image(titleImage, 0, 0);
     char letter = 'a';
-    int x = 1400, y = 200;
+    int x = 1100, y = 200;
     textFont(titleFontBig);
-    textAlign(CENTER,CENTER);
+    textAlign(LEFT,CENTER);
     for (MidiInfo mi : midiProcessor._midiInfos) {
       fill(0);
       text(letter + ": " + mi.displayName, x+3, y+3);
@@ -24,6 +24,7 @@ class Title implements StateHandler
       serial.write(0);
     }
   }
+
 
   String update()
   {

@@ -3,6 +3,7 @@ public class Player implements StateHandler
   int _ticks, _endTimer;
   int _startTime, _pos = 0;
   int[] _bell;
+  int _songLengthSecs;
 
   void begin()
   {
@@ -25,22 +26,36 @@ public class Player implements StateHandler
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
     if (midiInfo._lyrics != null) {
       for (String s : midiInfo._lyrics) {
+        if (s.equals("#")) break;
         text(s, width/2, y);
         y += 50;
       }
     }
+
+    _songLengthSecs = ceil((float)midiInfo.midi[midiInfo.midi.length - 1]._tick / 1000);
+
+    statsDatabase.clear();
+    stats = new Stats();
   }
 
   String update()
   {
     _ticks = millis() - _startTime;
+
+    int secs = _ticks / 1000;
+    if (secs != statsDatabase.size() )
+    {
+      statsDatabase.add(stats);
+      stats = new Stats();
+    }
+
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
 
     if (_pos < midiInfo.midi.length) {
       NoteInfo ni = midiInfo.midi[_pos];
       while (_pos < midiInfo.midi.length && _ticks >= ni._tick) {
         requestNote(_ticks, ni._note);
-        _endTimer = _ticks + 5000; // endTimer is set whenever a note is played, times out 5 secs after last note
+        _endTimer = _ticks + 2500; // endTimer is set whenever a note is played, times out after last note requested
         ++_pos;
 
         if (_pos < midiInfo.midi.length) {
@@ -79,7 +94,12 @@ public class Player implements StateHandler
       serial.write((byte)(lightsup >> 8));
     }
 
-    return _ticks > _endTimer ? "Title" : null;
+    if (keyget && keycode =='q') { 
+      keyget = false; 
+      return "Title";
+    };
+
+    return _ticks > _endTimer ? "Results" : null;
   }
 
   void draw()
