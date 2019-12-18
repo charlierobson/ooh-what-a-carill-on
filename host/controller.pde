@@ -5,7 +5,11 @@ import java.util.Queue;
 class Controller {
   ArrayList<Integer> _assignedNotes = new ArrayList<Integer>();
 
-  Queue<NoteInfo> _noteQueue = new LinkedList<NoteInfo>(); 
+  // first in first out
+  Queue<NoteInfo> _noteOffQueue = new LinkedList<NoteInfo>(); 
+
+  // last in first out
+  Stack<NoteInfo> _noteOnStack = new Stack<NoteInfo>(); 
 
   int _nextNote;
   int _lightOnTime;
@@ -26,7 +30,8 @@ class Controller {
     _lightOnTime = 0;
     _noteOffTime = 0;
     _noteMissed = false;
-    _noteQueue.clear();
+    _noteOnQueue.clear();
+    _noteOffQueue.clear();
   }
 
   void assignNotes(String notes) {
@@ -81,7 +86,7 @@ class Controller {
       if (((_noteInstances & 1) == 1) && _playOdd || ((_noteInstances & 1) == 0) && _playEven) {
         // turn on the light, and note which .. note we'll play next
         //
-        _noteQueue.add(new NoteInfo(ticks, note));
+        _noteOnStack.push(new NoteInfo(ticks, note));
 
         // light is on when lightOffTime != 0
         //
@@ -115,16 +120,26 @@ class Controller {
     if (triggered && !_lastTriggerState) {
       // play a note when buttons state transitions not triggered -> triggered
       //
-      if (_noteQueue.size() == 0) {
-        // uh-oh, nothing in queue
+      if (_noteOnStack.size() == 0) {
+        // uh-oh, nothing ready to play
         //
         //stats.earlyNote();
       } else {
-        NoteInfo ni = _noteQueue.remove();
+        // get latest note from the stack and play it
+        NoteInfo ni = _noteOnStack.pop();
         midiout.sendNoteOn(0, ni._note, 127);
-        if (_noteQueue.size() != 0) {
+
+        // note how long it took to respond
+        //stats.addDelta(ticks - ni._tick);
+
+        // adjust time into the future and add note to note-off queue
+        ni._tick = ticks + 300;
+        _noteOffQueue.add(ni);
+
+        // if the on stack isn't empty it means we missed some notes...
+        if (_noteOnStack.size() != 0) {
           // stats.missedNote(_noteQueue.size());
-          _noteQueue.clear();
+          _noteOnStack.clear();
         }
       }
 
