@@ -98,8 +98,8 @@ void setup() {
 
   statsDatabase = new ArrayList<Stats>();
 
-//  currentState = states.get("Ready");
-    currentState = states.get("Title");
+  currentState = states.get("Ready");
+//    currentState = states.get("Title");
   currentState.begin();
 }
 

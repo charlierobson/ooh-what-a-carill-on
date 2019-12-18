@@ -1,4 +1,7 @@
+
+
 import java.util.LinkedList;
+
 import java.util.Queue;
 
 // responsible for reading input and feedback and output 
@@ -30,6 +33,7 @@ class Controller {
     _noteOffQueue.clear();
   }
 
+
   void assignNotes(String notes) {
     // notes string is of form:
     //   65        - responsible for single note
@@ -58,6 +62,7 @@ class Controller {
       _assignedNotes.add(parseInt(notes));
     }
   }
+
 
   boolean trigger(int ticks, int note) {
     // check if we respond to this note
@@ -88,6 +93,7 @@ class Controller {
     }
     return false;
   }
+
 
   // returns true if light is on
   //

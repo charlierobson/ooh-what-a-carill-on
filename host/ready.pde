@@ -1,7 +1,7 @@
 class Ready implements StateHandler
 {
   int _linenum;
-  int _y, _mode;
+  int _y, _startRun;
   String[] _program;
   String _runText;
 
@@ -11,7 +11,7 @@ class Ready implements StateHandler
 
   void begin() {
     _y = 0;
-    _mode = 0;
+    _startRun = 0;
     _linenum = 0;
     _runText = "";
     background(0);
@@ -20,17 +20,17 @@ class Ready implements StateHandler
   }
 
   String update() {
+    if (_startRun != 0) {
+      int t = millis() - _startRun;
+      if (t > 3000) return "Title";
+      return null;
+    }
+
     if (keyget) {
       keyget = false;
       _linenum += 2;
       if (_linenum >= _program.length) {
-        _mode = 1;
-        delay(250);
-        if (_runText.equals("RUN")) { delay(500); return "Title"; }
-        if (_runText.equals("RU")) _runText = "RUN";
-        if (_runText.equals("R")) _runText = "RU";
-        if (_runText.equals("")) _runText = "R";
-        return null;
+        _startRun = millis();
       }
 
       _y += 15;
@@ -43,12 +43,14 @@ class Ready implements StateHandler
   }
 
   void draw() {
-    _program[0] = (millis()&512) == 512 ? "Ready " : "Ready _";
+    _program[0] = (millis()&512) == 512 ? "Ready  " : "Ready _";
 
-    if (_mode == 0) {
+    if (_startRun == 0) {
       text(_program[_linenum], 10, _y);
     } else {
-      text(_runText, 10, _y + 30);
+      int t = (millis() - _startRun) / 128;
+      if (t > 5) t = 5;
+      text("RUN    ".substring(0, t), 10, _y + 30);
     }
   }
 }
