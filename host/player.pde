@@ -55,6 +55,10 @@ public class Player implements StateHandler
     _songLengthSecs = ceil((float)midiInfo.midi[midiInfo.midi.length - 1]._tick / 1000);
 
     statsDatabase.clear();
+
+    for (Controller controller : midiInfo.controllers) {
+      controller.reset();
+    }
   }
 
   String update()
