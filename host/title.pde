@@ -35,6 +35,13 @@ class Title implements StateHandler
       }
     }
 
+    int x = (millis() & 1024) != 0 ? 0xff : 0;
+    if (serial != null) {
+      serial.write('w');
+      serial.write(x);
+      serial.write(x);
+    }
+
     return null;
   }
 
