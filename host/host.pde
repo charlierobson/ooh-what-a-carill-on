@@ -7,6 +7,8 @@ PFont titleFontBig;
 PFont titleFontSmall;
 PImage titleImage;
 PImage[] dingdong;
+PImage[] balls;
+PImage pud;
 
 Serial serial = null;
 
@@ -73,6 +75,13 @@ void setup() {
   titleFontBig = createFont("Baskerville-Italic", 50);
   titleFontSmall = createFont("Baskerville-Italic", 25);
 
+  pud = loadImage("pud.png");
+
+  balls = new PImage[10];
+  for(int i = 0; i < 10; ++i) {
+    balls[i] = loadImage("bbl1.png");
+  }
+
   dingdong = Gif.getPImages(this, "dingdong.gif");
 
   midiout = new MidiBus(this, -1, 1);
@@ -101,6 +110,8 @@ void setup() {
   ////production mode
   //states.put("Player", new Player());
   //currentState = states.get("Ready");
+
+  currentState = states.get("Results");
 
   currentState.begin();
 }

@@ -12,7 +12,7 @@ class SuperController {
     _x = x;
     _y = y;
     _player = player;
-    _skillLevel = 5;
+    _skillLevel = player._id + 1;
     _bpEndTicks = 0;
     _bpTicks = Integer.MAX_VALUE;
     _player.reset();
@@ -20,7 +20,7 @@ class SuperController {
 
   int getEstimatedReaction() {
     float startVal = map(_skillLevel, 1, 10, 50, 20);
-    float endVal = map(_skillLevel, 1, 10, 500, 100);
+    float endVal = map(_skillLevel, 1, 10, 1000, 100);
     return (int)(startVal + random(endVal - startVal));
   }
 
@@ -132,7 +132,7 @@ public class Test implements StateHandler
     
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
 
-    int secs = _ticks / 10000;
+    int secs = 0;  //_ticks / 10000;
     if (secs != statsDatabase.size() )
     {
       for (Controller controller : midiInfo.controllers) {

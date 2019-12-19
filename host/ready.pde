@@ -7,6 +7,7 @@ class Ready implements StateHandler
 
   Ready() {
     _program = loadStrings("controller.pde");
+    _program[0] = "Ready_";
   }
 
   void begin() {
@@ -43,8 +44,6 @@ class Ready implements StateHandler
   }
 
   void draw() {
-    _program[0] = (millis()&512) == 512 ? "Ready  " : "Ready _";
-
     if (_startRun == 0) {
       text(_program[_linenum], 10, _y);
     } else {

@@ -1,3 +1,4 @@
+
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -18,7 +19,6 @@ class Controller {
   int _noteInstances;
   boolean _lastTriggerState;
   boolean _justTriggered;
-
   boolean _playOdd = true;
   boolean _playEven = true;
 
@@ -40,7 +40,9 @@ class Controller {
   void submitStats(int tick) {
     _stats._id = _id;
     statsDatabase.add(_stats);
-    _stats = new Stats(tick);
+    if (tick != -1) {
+      _stats = new Stats(tick);
+    }
   }
 
   void assignNotes(String notes) {

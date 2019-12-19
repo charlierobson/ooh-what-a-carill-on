@@ -3,3 +3,4 @@
 *.lck
 .DS_Store
 *.autosave
+*.json
