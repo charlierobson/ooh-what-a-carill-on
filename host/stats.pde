@@ -2,11 +2,13 @@ ArrayList<Stats> statsDatabase;
 
 class Stats
 {
+  int _id, _tick;
   int _deltaSum, _count;
   int _minDelta, _maxDelta;
   int _missed, _early;
 
-  Stats() {
+  Stats(int tick) {
+    _tick = tick;
     _minDelta = Integer.MAX_VALUE;
     _maxDelta = Integer.MIN_VALUE;
   }
@@ -27,6 +29,7 @@ class Stats
   }
 
   void dump() {
+    println("tick: " +  str(_tick) + "  player: " + str(_id));
     println("count: " + str(_count) + "  deltaSum: " + str(_deltaSum));
     println("minDelta: " + str(_minDelta) + "  maxDelta: " + str(_maxDelta));
     println("missed: " + str(_missed) + "  early: " + str(_early));

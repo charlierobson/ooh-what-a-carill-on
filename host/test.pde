@@ -62,7 +62,7 @@ class SuperController {
     }
 
     if (_bpEndTicks != 0) {
-      _player.update(ticks, _player._lightMask);
+      _player.update(ticks, (1 << _player._id));
     } else {
       _player.update(ticks, 0);
     }
@@ -118,7 +118,6 @@ public class Test implements StateHandler
       x += 75;
     }
     statsDatabase.clear();
-    stats = new Stats();
   }
 
   private void requestNote(int ticks, int note) {
@@ -130,22 +129,22 @@ public class Test implements StateHandler
   String update()
   {
     _ticks = millis() - _startTime;
-
-    int secs = _ticks / 1000;
-    if (secs != statsDatabase.size() )
-    {
-      statsDatabase.add(stats);
-      stats.dump();
-      stats = new Stats();
-    }
     
     MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
+
+    int secs = _ticks / 10000;
+    if (secs != statsDatabase.size() )
+    {
+      for (Controller controller : midiInfo.controllers) {
+        controller.submitStats(_ticks);
+      }
+    }
 
     if (_pos < midiInfo.midi.length) {
       NoteInfo ni = midiInfo.midi[_pos];
       while (_pos < midiInfo.midi.length && _ticks >= ni._tick) {
         requestNote(_ticks, ni._note);
-        _endTimer = _ticks + 5000; // endTimer is set whenever a note is played, times out 5 secs after last note
+        _endTimer = _ticks + 2500; // endTimer is set whenever a note is played, times out 5 secs after last note
         ++_pos;
 
         if (_pos < midiInfo.midi.length) {
@@ -160,7 +159,7 @@ public class Test implements StateHandler
 
     mouseclicked = false;
 
-    return _ticks > _endTimer ? "Title" : null;
+    return _ticks > _endTimer ? "Results" : null;
   }
 
   void draw()

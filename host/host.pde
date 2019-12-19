@@ -10,8 +10,6 @@ PImage[] dingdong;
 
 Serial serial = null;
 
-Stats stats;
-
 int keycode;
 boolean keyget = false;
 void keyPressed() {
@@ -83,23 +81,27 @@ void setup() {
   midiProcessor = new MidiProcessor();  
   midiProcessor.findAndProcessFiles();
 
-  states = new HashMap<String, StateHandler>();
-
-  //// test mode
-  //states.put("Ready", new Title());  
-  //states.put("Player", new Test());
-  //states.put("Results", new Results());
-
-  //production mode
-  states.put("Ready", new Ready());
-  states.put("Title", new Title());
-  states.put("Player", new Player());
-  states.put("Results", new Results());
-
   statsDatabase = new ArrayList<Stats>();
 
-  currentState = states.get("Ready");
-//    currentState = states.get("Title");
+  states = new HashMap<String, StateHandler>();
+
+  states.put("Title", new Title());
+  states.put("Results", new Results());
+  states.put("Ready", new Ready());
+
+  // test mode 1
+  states.put("Player", new Test());
+  currentState = states.get("Title");
+
+  //// test mode 2
+  //roboMode = true;
+  //states.put("Player", new Player());
+  //currentState = states.get("Title");
+
+  ////production mode
+  //states.put("Player", new Player());
+  //currentState = states.get("Ready");
+
   currentState.begin();
 }
 

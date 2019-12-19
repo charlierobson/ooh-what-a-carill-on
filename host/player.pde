@@ -55,21 +55,21 @@ public class Player implements StateHandler
     _songLengthSecs = ceil((float)midiInfo.midi[midiInfo.midi.length - 1]._tick / 1000);
 
     statsDatabase.clear();
-    stats = new Stats();
   }
 
   String update()
   {
     _ticks = millis() - _startTime;
 
-    int secs = _ticks / 1000;
+    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
+
+    int secs = _ticks / 10000;
     if (secs != statsDatabase.size() )
     {
-      statsDatabase.add(stats);
-      stats = new Stats();
+      for (Controller controller : midiInfo.controllers) {
+        controller.submitStats(_ticks);
+      }
     }
-
-    MidiInfo midiInfo = midiProcessor._midiInfos[midiProcessor._songNum];
 
     if (_pos < midiInfo.midi.length) {
       NoteInfo ni = midiInfo.midi[_pos];
@@ -100,7 +100,7 @@ public class Player implements StateHandler
     for (Controller controller : midiInfo.controllers) {
       boolean active = controller.update(_ticks, buttonBits);
       if (active) {
-        lightsup |= controller._lightMask;
+        lightsup |= (1 << controller._id);
       }
       if (controller._justTriggered) {
         _bell[n] = 1;

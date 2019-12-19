@@ -115,7 +115,7 @@ class MidiProcessor
     // create controllers
     midinfo.controllers = new Controller[10];
     for (int i = 0; i < 10; ++i) {
-      midinfo.controllers[i] = new Controller();
+      midinfo.controllers[i] = new Controller(i);
     }
 
     // map notes to controllers using cooked map
@@ -127,7 +127,6 @@ class MidiProcessor
       for (Controller controller : midinfo.controllers) {
         String[] m = mapping[n].split("=");
         controller.assignNotes(m[0]);
-        controller._lightMask = 1 << n;
         ++n;
       }
     }

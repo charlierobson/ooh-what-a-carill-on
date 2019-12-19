@@ -1,23 +1,20 @@
-
-
 import java.util.LinkedList;
-
 import java.util.Queue;
+
+Boolean roboMode = false;
 
 // responsible for reading input and feedback and output 
 class Controller {
   ArrayList<Integer> _assignedNotes = new ArrayList<Integer>();
 
-  // first in first out
-  Queue<NoteInfo> _noteOffQueue = new LinkedList<NoteInfo>(); 
-
-  // last in first out
+  // note on stack is LIFO, note off queue is FIFO  
   Stack<NoteInfo> _noteOnStack = new Stack<NoteInfo>(); 
+  Queue<NoteInfo> _noteOffQueue = new LinkedList<NoteInfo>(); 
 
   int _nextNote;
   int _lightOnTime;
   int _lightOffTime;
-  int _lightMask;
+  int _id;
   int _noteInstances;
   boolean _lastTriggerState;
   boolean _justTriggered;
@@ -25,14 +22,26 @@ class Controller {
   boolean _playOdd = true;
   boolean _playEven = true;
 
+  Stats _stats;
+
+  Controller(int id) {
+    _id = id;
+  }
+
   void reset() {
     _noteInstances = 0;
     _lightOffTime = 0;
     _lightOnTime = 0;
     _noteOnStack.clear();
     _noteOffQueue.clear();
+    _stats = new Stats(0);
   }
 
+  void submitStats(int tick) {
+    _stats._id = _id;
+    statsDatabase.add(_stats);
+    _stats = new Stats(tick);
+  }
 
   void assignNotes(String notes) {
     // notes string is of form:
@@ -63,7 +72,6 @@ class Controller {
     }
   }
 
-
   boolean trigger(int ticks, int note) {
     // check if we respond to this note
     //
@@ -79,7 +87,7 @@ class Controller {
         _noteOnStack.push(new NoteInfo(ticks, note));
 
         // test mode
-        if (serial == null) {
+        if (roboMode) {
           midiout.sendNoteOn(0, note, 127);
         }
 
@@ -108,21 +116,21 @@ class Controller {
     //
     _justTriggered = false;
 
-    boolean triggered = (buttonMask & _lightMask) != 0;
+    boolean triggered = (buttonMask & (1<<_id)) != 0;
     if (triggered && !_lastTriggerState) {
       // play a note when buttons state transitions not triggered -> triggered
       //
       if (_noteOnStack.size() == 0) {
         // uh-oh, nothing ready to play
         //
-        stats.early();
+        _stats.early();
       } else {
         // get latest note from the stack and play it
         NoteInfo ni = _noteOnStack.pop();
         midiout.sendNoteOn(0, ni._note, 127);
 
         // note how long it took to respond
-        stats.delta(ticks - ni._tick);
+        _stats.delta(ticks - ni._tick);
 
         // adjust time into the future and add note to note-off queue
         ni._tick = ticks + 300;
@@ -130,7 +138,7 @@ class Controller {
 
         // if the on stack isn't empty it means we missed some notes...
         while (_noteOnStack.size() != 0) {
-           stats.missed();
+          _stats.missed();
           _noteOnStack.pop();
         }
       }
@@ -139,7 +147,7 @@ class Controller {
     _lastTriggerState = triggered;
 
     // retire notes if necessary
-    while(_noteOffQueue.peek() != null && _noteOffQueue.peek()._tick < ticks) {
+    while (_noteOffQueue.peek() != null && _noteOffQueue.peek()._tick < ticks) {
       NoteInfo ni = _noteOffQueue.remove();
       midiout.sendNoteOff(0, ni._note, 0);
     }
