@@ -7,7 +7,7 @@ PFont titleFontBig;
 PFont titleFontSmall;
 PImage titleImage;
 PImage[] dingdong;
-PImage[] balls;
+PImage balls;
 PImage pud;
 
 Serial serial = null;
@@ -60,8 +60,8 @@ StateHandler currentState;
 
 
 void setup() {
-  //size(1920, 1080);
-  fullScreen(2);
+  size(1920, 1080);
+  //fullScreen(2);
 
   try {
     printArray(Serial.list());
@@ -76,11 +76,7 @@ void setup() {
   titleFontSmall = createFont("Baskerville-Italic", 25);
 
   pud = loadImage("pud.png");
-
-  balls = new PImage[10];
-  for(int i = 0; i < 10; ++i) {
-    balls[i] = loadImage("bbl1.png");
-  }
+  balls = loadImage("bbl1.png");
 
   dingdong = Gif.getPImages(this, "dingdong.gif");
 
@@ -107,7 +103,7 @@ void setup() {
   //states.put("Player", new Player());
   //currentState = states.get("Title");
 
-  ////production modeksjdlkajlkjdsdsa,hdljahsdkjhas
+  ////production mode
   //states.put("Player", new Player());
   //currentState = states.get("Ready");
 

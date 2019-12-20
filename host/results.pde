@@ -67,7 +67,8 @@ class Results implements StateHandler
 
       rect (236 + (150*i), 900 - h, 97, h);
       image(pud, 235 + (150*i), 900 - h - 98);
-      image(balls[i], 210 + (150 * i), 900);
+      image(balls, 210 + (150 * i), 850);
+      text(str(i+1), 210 + 75 + (150 * i), 850+75+42);
     }
   }
 }
